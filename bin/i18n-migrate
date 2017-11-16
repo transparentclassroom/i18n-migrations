@@ -1,0 +1,74 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/i18n/migrations/migrator'
+require_relative '../lib/i18n/migrations/config'
+
+migrator = I18n::Migrations::Migrator.new
+
+case ARGV.shift
+  when 'setup'
+    puts 'Where should we create a default config file? [.]'
+    dir = gets.chomp
+    dir = dir == '' ? '.' : dir
+    file = I18n::Migrations::Config.copy_default_config_file(dir)
+
+    puts 'You will need to configure this file before you can get going.'
+    puts File.expand_path(file)
+
+  when 'new'
+    name = ARGV.shift
+    if name
+      migrator.new_migration name
+    else
+      STDERR.puts 'Usage: im new [name]'
+      exit 1
+    end
+
+  when 'migrate'
+    migrator.migrate
+
+  when 'rollback'
+    migrator.rollback(ARGV[0] || 'all')
+
+  when 'redo'
+    migrator.rollback(ARGV[0] || 'all')
+    migrator.migrate
+
+  when 'pull'
+    migrator.pull ARGV[0] || 'all'
+
+  when 'push'
+    migrator.push ARGV[0] || 'all'
+
+  when 'new_locale'
+    locale = ARGV.shift
+    if locale
+      migrator.new_locale(locale)
+    else
+      STDERR.puts 'Usage: im new_locale [name]'
+      exit 1
+    end
+
+  when 'version'
+    migrator.version
+
+  else
+    puts <<-USAGE
+Usage: im [command]
+
+Commands:
+  setup - Setup a new project w/ i18n-migrations.
+  new - Create a new migration.
+  migrate - Migrate to current version.
+  rollback - Rollback to previous version.
+  redo - Rollback and then migrate again.
+  pull - Pull latest translation spreadsheet. 
+  push - Push to translation spreadsheet.
+  new_locale - Copy your current main locale file to a new language, translating all keys.
+  version - Print version of locales.
+
+    USAGE
+    puts
+    puts "Commands:"
+    puts
+end
