@@ -57,8 +57,7 @@ module I18n
 
       def _add(key, term, overrides)
         assert_does_not_exist! key
-        @data[key] = overrides[@locale.to_sym] || @dictionary.lookup(term)
-        @notes[key] = "[autotranslated]"
+        assign_translation(key, term, overrides)
       end
 
       def _mv(from, to)
@@ -69,8 +68,7 @@ module I18n
 
       def _update(key, term, overrides)
         assert_exists! key
-        @data[key] = overrides[@locale.to_sym] || @dictionary.lookup(term)
-        @notes[key] = "[autotranslated]"
+        assign_translation(key, term, overrides)
       end
 
       def _rm(key)
@@ -89,6 +87,14 @@ module I18n
 
       def assert_does_not_exist!(key)
         raise "#{key} already exists in #{@locale}" if @data.has_key?(key)
+      end
+
+      def assign_translation(key, term, overrides)
+        if overrides[@locale.to_sym]
+          @data[key] = overrides[@locale.to_sym]
+        else
+          @data[key], @notes[key] = @dictionary.lookup(term)
+        end
       end
     end
   end

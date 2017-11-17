@@ -16,7 +16,12 @@ google_service_account_key_path: i18n/google_drive_key.json
 
 # each locale will have a spreadsheet that translators will use to do their work, these are the links to them
 google_spreadsheets:
-  es: https://docs.google.com/spreadsheets/d/1QGCzMbTyxF2gSUpWwRKAq-mMFIgJwsOLp1lfXsSF5X0/edit
+  es: https://docs.google.com/spreadsheets/d/YOUR_SPREADSHEET_ID/edit
 
 # this is your api key to use google translate
 google_translate_api_key: [INSERT_GOOGLE_TRANSLATE_API_KEY]
+
+# put things like your product name here along with any possible mistranslations
+do_not_translate:
+  "I18n Migrations":
+    - I18n Migraciones

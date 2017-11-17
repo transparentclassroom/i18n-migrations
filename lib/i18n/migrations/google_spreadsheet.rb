@@ -1,15 +1,14 @@
 require 'google_drive'
-require 'config'
 
 module I18n
   module Migrations
     class GoogleSpreadsheet
       attr_reader :sheet
 
-      def initialize(locale)
-        @session = GoogleDrive::Session.from_service_account_key(Config.google_service_account_key_path)
+      def initialize(locale, spreadsheet_url, key_path)
+        @session = GoogleDrive::Session.from_service_account_key(key_path)
 
-        url = Config.google_spreadsheets[locale] || raise("Can't find google spreadsheet for #{locale}")
+        url = spreadsheet_url || raise("Can't find google spreadsheet for #{locale}")
         @spreadsheet = @session.spreadsheet_by_url(url)
         @sheet = sheet_for("Sheet1")
       end

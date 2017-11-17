@@ -27,10 +27,40 @@ And then execute:
 Or install it yourself as:
 
     $ gem install i18n-migrations
+    
+From your project file, you'll want to run 
+
+    $ i18n-migrate setup
+    
+This will create a config file you can edit.
 
 ## Usage
 
-TODO: Write usage instructions here
+Let's imagine that your config file look like this:
+
+    migration_dir: i18n/migrate
+    locales_dir: config/locales
+    main_locale: en
+    other_locales:
+    - es
+    ..
+
+In your project file, you should then have all your english terms in ```config/locales/en.yml```
+
+To create a new locale (like es.yml):
+
+1. Translate all the terms w/ google translate
+
+    > i18n-migrate new_locale es
+    
+2. Create a spreadsheet that is world editable (for now). You'll want to add the link to it to your config file. It should look like:
+
+    | key | en | es | notes | 
+
+2. Push this to your google spreadsheet (the -f means it won't try to pull first)
+
+    > i18n-migrate push -f es
+
 
 ## Development
 

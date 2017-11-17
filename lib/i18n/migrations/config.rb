@@ -33,6 +33,10 @@ module I18n
         get_value(:google_translate_api_key)
       end
 
+      def do_not_translate
+        get_value(:do_not_translate)
+      end
+
       def read!
         yaml_file = find_config_file(CONFIG_FILE_NAME)
         unless yaml_file

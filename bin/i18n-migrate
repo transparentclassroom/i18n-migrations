@@ -5,6 +5,10 @@ require_relative '../lib/i18n/migrations/config'
 
 migrator = I18n::Migrations::Migrator.new
 
+def extract_option(name)
+  !!ARGV.delete(name)
+end
+
 case ARGV.shift
   when 'setup'
     puts 'Where should we create a default config file? [.]'
@@ -38,7 +42,11 @@ case ARGV.shift
     migrator.pull ARGV[0] || 'all'
 
   when 'push'
-    migrator.push ARGV[0] || 'all'
+    force = extract_option('-f')
+    migrator.push(ARGV[0] || 'all', force)
+
+  when 'validate'
+    migrator.validate(ARGV[0] || 'all')
 
   when 'new_locale'
     locale = ARGV.shift
@@ -63,7 +71,8 @@ Commands:
   rollback - Rollback to previous version.
   redo - Rollback and then migrate again.
   pull - Pull latest translation spreadsheet. 
-  push - Push to translation spreadsheet.
+  push - Push to translation spreadsheet. (-f to force, without doing a pull first)
+  validate - check all translations according to our rules and fix what we can
   new_locale - Copy your current main locale file to a new language, translating all keys.
   version - Print version of locales.
 

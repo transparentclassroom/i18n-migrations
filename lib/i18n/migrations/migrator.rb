@@ -2,6 +2,7 @@ require 'fileutils'
 require 'yaml'
 require 'active_support/inflector'
 require 'active_support/core_ext/object'
+require 'colorize'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'google_translate_dictionary'
@@ -55,30 +56,36 @@ end
       def pull(locale_or_all)
         each_locale(locale_or_all) do |locale|
           next if locale == config.main_locale
-          sheet = GoogleSpreadsheet.new(locale).sheet
+          sheet = get_google_spreadsheet(locale)
           pull_locale(locale, sheet)
           migrate(locale)
         end
       end
 
-      def push(locale_or_all)
+      def push(locale_or_all, force = false)
         each_locale(locale_or_all) do |locale|
           next if locale == config.main_locale
-          sheet = GoogleSpreadsheet.new(locale).sheet
-          pull_locale(locale, sheet)
-          migrate(locale)
+          sheet = get_google_spreadsheet(locale)
+          unless force
+            pull_locale(locale, sheet)
+            migrate(locale)
+          end
           push_locale(locale, sheet)
         end
       end
 
-      def new_locale(new_locale)
-        dictionary = GoogleTranslateDictionary.new(config.google_translate_api_key, config.main_locale, new_locale)
+      def new_locale(new_locale, limit = nil)
+        dictionary = new_dictionary(new_locale)
         new_data, new_notes = {}, {}
-        read_locale_data(config.main_locale).each do |key, term|
-          new_data[key] = dictionary.lookup(term)
-          new_notes[key] = '[autotranslated]'
+        count = 0
+        main_data = read_locale_data(config.main_locale)
+        main_data.each do |key, term|
+          new_data[key], new_notes[key] = dictionary.lookup(term)
           print '.'.green
+          break if limit && limit < count += 1
         end
+        new_data['VERSION'] = main_data['VERSION']
+        puts
         write_locale_data_and_notes(new_locale, new_data, new_notes)
       end
 
@@ -88,7 +95,47 @@ end
         end
       end
 
+      def validate(locale_or_all)
+        each_locale(locale_or_all) do |locale|
+          next if locale == config.main_locale
+          update_locale_info(locale) do |data, notes|
+            validate_locale(locale, data, notes)
+          end
+        end
+      end
+
       private
+
+      def validate_locale(locale, data, notes)
+        main_data = read_locale_data(config.main_locale)
+        dict = new_dictionary(locale)
+        main_data.each do |key, main_term|
+          old_term = data[key]
+          new_term, errors = dict.fix(main_term, old_term)
+          if new_term != old_term
+            data[key] = new_term
+            puts "#{"Fix".green} #{key.green}:"
+            puts "#{config.main_locale}: #{main_term}"
+            puts "#{locale} (old): #{old_term}"
+            puts "#{locale} (new): #{new_term}"
+          end
+          replace_errors_in_notes(notes, key, errors)
+          if errors.length > 0
+            puts "Error #{errors.join(', ')} #{key}"
+            puts "#{config.main_locale}: #{main_term}"
+            puts "#{locale}: #{old_term}"
+          end
+        end
+      end
+
+      def replace_errors_in_notes(all_notes, key, errors)
+        return if all_notes[key].blank? && errors.empty?
+
+        notes = all_notes[key]
+        notes = notes.present? ? notes.split("\n") : []
+        notes = notes.reject { |n| n.start_with?("[error:") }
+        all_notes[key] = (errors + notes).join("\n")
+      end
 
       def update_locale_info(locale)
         data, notes = read_locale_data_and_notes(locale)
@@ -164,7 +211,7 @@ end
       end
 
       def migrate_locale(locale, data, notes)
-        missing_versions = all_versions - locale_versions(data)
+        missing_versions = (all_versions - locale_versions(data)).sort
         if missing_versions.empty?
           puts "#{locale}: up-to-date"
           return
@@ -191,7 +238,7 @@ end
         filename = File.join(config.migration_dir, "#{version}.rb")
         require filename
         migration_class_name = version.gsub(/^\d{12}_/, '').camelcase
-        dictionary = GoogleTranslateDictionary.new(config.google_translate_api_key, config.main_locale, locale)
+        dictionary = new_dictionary(locale)
 
         migration = begin
           migration_class_name.constantize.new(locale, data, notes, dictionary, direction)
@@ -272,6 +319,16 @@ end
 
       def all_versions
         Dir[config.migration_dir + '/*.rb'].map { |name| File.basename(name).gsub('.rb', '') }
+      end
+
+      def new_dictionary(locale)
+        GoogleTranslateDictionary.new(config.main_locale, locale, config.google_translate_api_key, config.do_not_translate)
+      end
+
+      def get_google_spreadsheet(locale)
+        GoogleSpreadsheet.new(locale,
+                              config.google_spreadsheets[locale],
+                              config.google_service_account_key_path).sheet
       end
     end
   end
