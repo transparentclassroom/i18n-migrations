@@ -134,7 +134,7 @@ end
         notes = all_notes[key]
         notes = notes.present? ? notes.split("\n") : []
         notes = notes.reject { |n| n.start_with?("[error:") }
-        all_notes[key] = (errors + notes).join("\n")
+        all_notes[key] = (errors.map{|e| "[error: #{e}]"} + notes).join("\n")
       end
 
       def update_locale_info(locale)

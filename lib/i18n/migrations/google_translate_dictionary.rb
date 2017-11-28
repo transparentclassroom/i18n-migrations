@@ -20,7 +20,7 @@ module I18n
         unless errors.empty?
           STDERR.puts "'#{term}' => '#{translated_term}'\n#{errors.join(', ').red}"
         end
-        [translated_term, (errors.map{|e| "[error: #{e}]"} + ['[autotranslated]']).join("\n")]
+        [translated_term, (errors.map { |e| "[error: #{e}]" } + ['[autotranslated]']).join("\n")]
       end
 
       VARIABLE_STRING = /%\{[^\}]+\}/
@@ -46,7 +46,24 @@ module I18n
         before_variables = before.scan(VARIABLE_STRING)
         after_variables = after.scan(VARIABLE_STRING)
 
-        if before_variables.sort != after_variables.sort
+        if before_variables.sort == after_variables.sort
+          # we have all of our variables, let's make sure spacing before them is correct
+
+          before_variables.each do |variable|
+            before_index = before =~ /(.?)#{variable}/
+            before_leading = $1
+            after_index = after =~ /(.?)#{variable}/
+            after_leading = $1
+
+            if before_index && after_index &&
+                before_leading == ' ' && after_leading != ' ' &&
+                after_index != 0
+              after = after.sub(variable, " #{variable}")
+            end
+          end
+
+        else
+          # we don't have all the variables we should have
           missing = before_variables - after_variables
           extra = after_variables - before_variables
 

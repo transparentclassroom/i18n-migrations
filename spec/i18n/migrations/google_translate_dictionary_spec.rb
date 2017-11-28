@@ -13,13 +13,14 @@ describe I18n::Migrations::GoogleTranslateDictionary do
       expect(dict.fix('hello, mom!', '¡hola, mama!')).to eq(['¡hola, mama!', []])
     end
 
-    xit 'should fix errors around %{}s' do
+    it 'should fix errors around %{}s' do
       expect(dict.fix('hello, %{mom}!', '¡hola, %{mama}!')).to eq(['¡hola, %{mom}!', []])
       expect(dict.fix('hello, %{mom}!', '¡hola, % {mom}!')).to eq(['¡hola, %{mom}!', []])
       expect(dict.fix('hello, %{mom}!', '¡hola,% {mom}!')).to eq(['¡hola, %{mom}!', []])
       expect(dict.fix('hello, %{mom}!', '¡hola,%{mom}!')).to eq(['¡hola, %{mom}!', []])
 
-      # leave this one alone
+      # leave alone
+      expect(dict.fix('%{person}s %{thing}', '%{thing} de %{person}')).to eq(['%{thing} de %{person}', []])
       expect(dict.fix('<a href="%{link}">%{text}</a>', '<a href="%{link}">%{text}</a>'))
           .to eq(['<a href="%{link}">%{text}</a>', []])
     end
