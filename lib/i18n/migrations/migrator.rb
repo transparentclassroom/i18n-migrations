@@ -118,12 +118,14 @@ end
             puts "#{config.main_locale}: #{main_term}"
             puts "#{locale} (old): #{old_term}"
             puts "#{locale} (new): #{new_term}"
+            puts
           end
           replace_errors_in_notes(notes, key, errors)
           if errors.length > 0
-            puts "Error #{errors.join(', ')} #{key}"
-            puts "#{config.main_locale}: #{main_term}"
-            puts "#{locale}: #{old_term}"
+            puts "Error #{errors.join(', ').red} #{key.yellow}"
+            puts "#{config.main_locale.bold}: #{main_term}"
+            puts "#{locale.bold}: #{old_term}"
+            puts
           end
         end
       end
