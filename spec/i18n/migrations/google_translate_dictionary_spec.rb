@@ -5,7 +5,12 @@ describe I18n::Migrations::GoogleTranslateDictionary do
   let(:do_not_translate) { {
       'Transparent Classroom' => ['Aula Transparente', 'Invisible Cuarto']
   } }
-  let(:dict) { I18n::Migrations::GoogleTranslateDictionary.new('en', 'es', nil, do_not_translate) }
+  let(:dict) {
+    I18n::Migrations::GoogleTranslateDictionary.new(from_locale: 'en',
+                                                    to_locale: 'es',
+                                                    key: nil,
+                                                    do_not_translate: do_not_translate)
+  }
 
   describe '#fix' do
     it 'should let most strings pass through' do

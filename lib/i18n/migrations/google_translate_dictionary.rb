@@ -3,7 +3,7 @@ require 'rest-client'
 module I18n
   module Migrations
     class GoogleTranslateDictionary
-      def initialize(from_locale, to_locale, key, do_not_translate)
+      def initialize(from_locale:, to_locale:, key:, do_not_translate:)
         @from_locale, @to_locale, @key, @do_not_translate = from_locale, to_locale, key, do_not_translate
       end
 
