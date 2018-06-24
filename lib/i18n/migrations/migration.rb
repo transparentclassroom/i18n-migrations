@@ -93,7 +93,7 @@ module I18n
         if overrides[@locale.to_sym]
           @data[key] = overrides[@locale.to_sym]
         else
-          @data[key], @notes[key] = @dictionary.lookup(term)
+          @data[key], @notes[key] = @dictionary.lookup(term, key: key)
         end
       end
     end

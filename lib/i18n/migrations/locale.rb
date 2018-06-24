@@ -20,7 +20,7 @@ module I18n
         main_data = main_locale.read_data
         main_data.each do |key, main_term|
           old_term = data[key]
-          new_term, errors = @dictionary.fix(main_term, old_term)
+          new_term, errors = @dictionary.fix(main_term, old_term, key: key)
           if new_term != old_term
             data[key] = new_term
             puts "#{"Fix".green} #{key.green}:"
@@ -120,7 +120,7 @@ module I18n
         count = 0
         main_data = main_locale.read_data
         main_data.each do |key, term|
-          new_data[key], new_notes[key] = @dictionary.lookup(term)
+          new_data[key], new_notes[key] = @dictionary.lookup(term, key: key)
           print '.'.green
           break if limit && limit < (count += 1)
         end

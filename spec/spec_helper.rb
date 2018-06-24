@@ -20,7 +20,7 @@ class File
 end
 
 class FakeDictionary
-  def lookup(term)
+  def lookup(term, key: nil)
     ["translated #{term}", '[autotranslated]']
   end
 end

@@ -45,5 +45,32 @@ describe I18n::Migrations::GoogleTranslateDictionary do
       expect(dict.fix('Welcome to Transparent Classroom', 'Bienvenidos al Transparente'))
           .to eq(['Bienvenidos al Transparente', ['missing Transparent Classroom']])
     end
+
+    describe 'escaped html' do
+      it 'should be fine with escaped stuff in html' do
+        expect(dict.fix('say &#39;observe&#39;', 'di &#39;observar&#39;', key: 'foo_html'))
+            .to eq(['di &#39;observar&#39;', []])
+      end
+
+      it 'should complain if there are html escaped stuff that was not in original' do
+        expect(dict.fix('say \'observe\'', 'di &#39;observar&#39;', key: 'foo_html'))
+            .to eq(["di 'observar'", []])
+      end
+
+      it 'should complain if there are html escaped stuff in not html' do
+        expect(dict.fix('say &#39;observe&#39;', 'di &#39;observar&#39;', key: 'foo'))
+            .to eq(["di 'observar'", []])
+      end
+
+      it 'should know how to replace all sorts of char escapes' do
+        expect(dict.fix('foo', 'foo &amp; &quot; &lt; &gt; &nbsp; &#39;', key: 'foo'))
+            .to eq(["foo & \" < >   '", []])
+      end
+
+      it 'should have error if it does not know an escape' do
+        expect(dict.fix('foo', 'foo &what;', key: 'foo'))
+            .to eq(['foo &what;', ["Don't know how to clean up &what;"]])
+      end
+    end
   end
 end

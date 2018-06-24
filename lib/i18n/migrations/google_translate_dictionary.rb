@@ -7,25 +7,43 @@ module I18n
         @from_locale, @to_locale, @key, @do_not_translate = from_locale, to_locale, key, do_not_translate
       end
 
+      # key is provided so we can figure out if this is text or html
       # returns [translated term, notes]
-      def lookup(term)
+      def lookup(term, key: nil)
         return [term, ''] if @from_locale == @to_locale
 
         response = RestClient.get 'https://www.googleapis.com/language/translate/v2', {
             accept: :json,
-            params: { key: @key, source: @from_locale, target: @to_locale, q: term }
+            params: { key: @key,
+                      source: @from_locale,
+                      target: @to_locale,
+                      format: format(key),
+                      q: term }
         }
         translated_term = JSON.parse(response.body)['data']['translations'].first['translatedText']
-        translated_term, errors = fix(term, translated_term)
+        translated_term, errors = fix(term, translated_term, key: key)
         unless errors.empty?
           STDERR.puts "'#{term}' => '#{translated_term}'\n#{errors.join(', ').red}"
         end
         [translated_term, (errors.map { |e| "[error: #{e}]" } + ['[autotranslated]']).join("\n")]
       end
 
-      VARIABLE_STRING = /%\{[^\}]+\}/
+      VARIABLE_STRING_REGEX = /%\{[^\}]+\}/
+      HTML_ESCAPE_REGEX = /&[A-Za-z#0-9]+;/
+      HTML_ESCAPES = {
+          '&#39;' => "'",
+          '&amp;' => '&',
+          '&lt;' => '<',
+          '&gt;' => '>',
+          '&quot;' => '"',
+          '&nbsp;' => ' ',
+          '&#8594;' => '→',
+          '&#8592;' => '←',
+          '&hellip;' => '…',
+      }
       # returns updated after term, errors
-      def fix(before, after)
+      def fix(before, after, key: nil)
+        is_html = format(key) == :html
         errors = []
 
         # do not translate
@@ -43,8 +61,8 @@ module I18n
         after = after.gsub('% {', '%{')
 
         # match up variables, should have same variable in before and after
-        before_variables = before.scan(VARIABLE_STRING)
-        after_variables = after.scan(VARIABLE_STRING)
+        before_variables = before.scan(VARIABLE_STRING_REGEX)
+        after_variables = after.scan(VARIABLE_STRING_REGEX)
 
         if before_variables.sort == after_variables.sort
           # we have all of our variables, let's make sure spacing before them is correct
@@ -76,10 +94,32 @@ module I18n
           end
         end
 
+        # fix html escapes
+        escapes = after.scan(HTML_ESCAPE_REGEX)
+        if escapes.present?
+          before_escapes = before.scan(HTML_ESCAPE_REGEX)
+          escapes.each do |escape|
+            if is_html && before_escapes.include?(escape)
+              # leave it
+            else
+              if (replace_with = HTML_ESCAPES[escape])
+                after = after.sub(escape, replace_with)
+              else
+                errors << "Don't know how to clean up #{escape}"
+              end
+            end
+          end
+        end
+
+
         [after, errors]
       end
 
       private
+
+      def format(key)
+        key&.index('_html') ? :html : :text
+      end
 
       def find_included_translation(after, bad_translations)
         bad_translations.each do |translation|
