@@ -137,6 +137,10 @@ module I18n
         read_versions(read_data).last
       end
 
+      def read_data
+        read_from_file("#{@name}.yml")
+      end
+
       private
 
       def main_locale
@@ -144,7 +148,7 @@ module I18n
                    locales_dir: @locales_dir,
                    main_locale_name: @main_locale_name,
                    migrations: @migrations,
-                   dictionary: null) # should not use dictionary on main locale
+                   dictionary: nil) # should not use dictionary on main locale
       end
 
       def replace_errors_in_notes(all_notes, key, errors)
@@ -160,10 +164,6 @@ module I18n
         data = read_data
         notes = main_locale? ? {} : read_from_file("../#{@name}_notes.yml")
         [data, notes]
-      end
-
-      def read_data
-        read_from_file("#{@name}.yml")
       end
 
       def write_data_and_notes(data, notes)

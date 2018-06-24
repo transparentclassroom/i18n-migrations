@@ -1,4 +1,9 @@
 $LOAD_PATH.unshift File.expand_path('../lib', __FILE__)
+require 'active_support/json'
+
+def stringify(hash)
+  JSON.parse(hash.to_json)
+end
 
 class File
   def self.write(name, text)
@@ -6,10 +11,40 @@ class File
       f << text
     end
   end
+
+  def self.write_yaml(name, yaml)
+    File.open(name, 'w') do |f|
+      f << stringify(yaml).to_yaml
+    end
+  end
 end
 
 class FakeDictionary
   def lookup(term)
     ["translated #{term}", '[autotranslated]']
+  end
+end
+
+class FakeSheet
+  attr_reader :data
+
+  def initialize(data = [['key', 'en', 'es', 'notes']])
+    @data = data
+  end
+
+  def num_rows
+    @data.length
+  end
+
+  def [](row, col)
+    @data[row-1][col-1]
+  end
+
+  def []=(row, col, value)
+    (@data[row-1] ||= [])[col-1] = value
+  end
+
+  def synchronize
+    # nothin'
   end
 end

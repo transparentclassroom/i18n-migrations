@@ -82,7 +82,7 @@ end
       def push(locale_or_all, force = false)
         each_locale(locale_or_all) do |locale|
           next if locale.main_locale?
-          sheet = get_google_spreadsheet(locale)
+          sheet = get_google_spreadsheet(locale.name)
           unless force
             locale.pull(sheet)
             migrate(locale.name)

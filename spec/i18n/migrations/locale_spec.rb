@@ -58,21 +58,13 @@ describe I18n::Migrations::Locale do
     FileUtils.rm_rf locales_dir
   end
 
-  describe 'validate' do
+  describe '#validate' do
   end
 
-  describe 'update_info' do
+  describe '#update_info' do
     it 'should read date & notes and write them back' do
-      File.write '/tmp/locale_spec/locales/es.yml', <<-YML
----
-es:
-  something: this is data
-      YML
-      File.write '/tmp/locale_spec/es_notes.yml', <<-YML
----
-es:
-  something_else: this is notes
-      YML
+      File.write_yaml '/tmp/locale_spec/locales/es.yml', es: { something: 'this is data' }
+      File.write_yaml '/tmp/locale_spec/es_notes.yml', es: { something_else: 'this is notes' }
 
       locale.update_info do |data, notes|
         expect(data).to eq({ 'something' => 'this is data' })
@@ -105,7 +97,7 @@ es:
     end
   end
 
-  describe 'migrate & rollback' do
+  describe '#migrate & #rollback' do
     it 'should play migrations not yet played' do
       data = {}
       notes = {}
@@ -131,6 +123,35 @@ es:
       locale.rollback(data, notes)
       locale.rollback(data, notes)
       expect(data).to eq('VERSION' => '')
+    end
+  end
+
+  describe '#push & #pull' do
+    let(:data) {
+      [
+          ['key', 'en', 'es', 'notes'],
+          ['one', 'ONE', 'UNO', 'notes about one'],
+          ['two', 'TWO', 'DOS', nil],
+      ]
+    }
+
+    it 'should pull data from sheet' do
+      sheet = FakeSheet.new(data)
+      locale.pull(sheet)
+
+      expect(YAML.load_file('/tmp/locale_spec/locales/es.yml')).to eq(stringify(es: { one: 'UNO', two: 'DOS' }))
+      expect(YAML.load_file('/tmp/locale_spec/es_notes.yml')).to eq(stringify(es: { one: 'notes about one' }))
+    end
+
+    it 'should push data to sheet' do
+      File.write_yaml('/tmp/locale_spec/locales/en.yml', en: { one: 'ONE', two: 'TWO' })
+      File.write_yaml('/tmp/locale_spec/locales/es.yml', es: { one: 'UNO', two: 'DOS' })
+      File.write_yaml('/tmp/locale_spec/es_notes.yml', es: { one: 'notes about one' })
+
+      sheet = FakeSheet.new
+      locale.push(sheet)
+
+      expect(sheet.data).to eq(data)
     end
   end
 end
