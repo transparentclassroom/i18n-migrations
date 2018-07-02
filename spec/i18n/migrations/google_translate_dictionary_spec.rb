@@ -5,12 +5,13 @@ describe I18n::Migrations::GoogleTranslateDictionary do
   let(:do_not_translate) { {
       'Transparent Classroom' => ['Aula Transparente', 'Invisible Cuarto']
   } }
-  let(:dict) {
+  
+  def dict(to_locale = 'es')
     I18n::Migrations::GoogleTranslateDictionary.new(from_locale: 'en',
-                                                    to_locale: 'es',
+                                                    to_locale: to_locale,
                                                     key: nil,
                                                     do_not_translate: do_not_translate)
-  }
+  end
 
   describe '#fix' do
     it 'should let most strings pass through' do
@@ -28,6 +29,13 @@ describe I18n::Migrations::GoogleTranslateDictionary do
       expect(dict.fix('%{person}s %{thing}', '%{thing} de %{person}')).to eq(['%{thing} de %{person}', []])
       expect(dict.fix('<a href="%{link}">%{text}</a>', '<a href="%{link}">%{text}</a>'))
           .to eq(['<a href="%{link}">%{text}</a>', []])
+    end
+
+    describe 'mandarin' do
+      it 'should translate percent back to english percent and not add leading spaces' do
+        expect(dict('zh').fix('Account Blocked for %{school_name}', '阻止％{school_name}的透明课堂帐户'))
+            .to eq(['阻止%{school_name}的透明课堂帐户', []])
+      end
     end
 
     it 'should raise errors around mismatched %{}s' do

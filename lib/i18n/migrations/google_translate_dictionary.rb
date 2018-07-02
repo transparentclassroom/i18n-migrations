@@ -58,7 +58,9 @@ module I18n
         end
 
         # common mistakes
-        after = after.gsub('% {', '%{')
+        after = after
+                    .gsub('% {', '%{')
+                    .gsub('％{', '%{')
 
         # match up variables, should have same variable in before and after
         before_variables = before.scan(VARIABLE_STRING_REGEX)
@@ -67,16 +69,18 @@ module I18n
         if before_variables.sort == after_variables.sort
           # we have all of our variables, let's make sure spacing before them is correct
 
-          before_variables.each do |variable|
-            before_index = before =~ /(.?)#{variable}/
-            before_leading = $1
-            after_index = after =~ /(.?)#{variable}/
-            after_leading = $1
+          unless no_spaces?
+            before_variables.each do |variable|
+              before_index = before =~ /(.?)#{variable}/
+              before_leading = $1
+              after_index = after =~ /(.?)#{variable}/
+              after_leading = $1
 
-            if before_index && after_index &&
-                before_leading == ' ' && after_leading != ' ' &&
-                after_index != 0
-              after = after.sub(variable, " #{variable}")
+              if before_index && after_index &&
+                  before_leading == ' ' && after_leading != ' ' &&
+                  after_index != 0
+                after = after.sub(variable, " #{variable}")
+              end
             end
           end
 
@@ -116,6 +120,10 @@ module I18n
       end
 
       private
+
+      def no_spaces?
+        @to_locale == 'zh'
+      end
 
       def format(key)
         key&.index('_html') ? :html : :text
