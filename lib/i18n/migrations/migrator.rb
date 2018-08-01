@@ -40,7 +40,8 @@ module I18n
           puts "Creating migration directory #{config.migration_dir} because it didn't exist."
           FileUtils.mkdir_p(config.migration_dir)
         end
-        File.open(File.join(config.migration_dir, file_name), 'w') do |f|
+        full_file_name = File.join(config.migration_dir, file_name)
+        File.open(full_file_name, 'w') do |f|
           f << <<-CONTENTS
 require 'i18n-migrations'
 
@@ -51,7 +52,7 @@ class #{name.camelcase} < I18n::Migrations::Migration
 end
           CONTENTS
         end
-        puts "Wrote new migration to #{file_name}"
+        puts "Wrote new migration to #{full_file_name}"
       end
 
       def migrate(locale_or_all = 'all')
