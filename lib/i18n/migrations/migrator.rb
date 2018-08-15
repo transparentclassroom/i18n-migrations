@@ -35,7 +35,8 @@ module I18n
 
       def new_migration(name)
         name = name.parameterize(separator: '_')
-        file_name = "#{Time.now.strftime('%Y%m%d%H%M')}_#{name.downcase.gsub(' ', '_')}.rb"
+        time = Time.now.strftime('%Y%m%d%H%M')
+        file_name = "#{time}_#{name.downcase.gsub(' ', '_')}.rb"
         unless Dir.exist?(config.migration_dir)
           puts "Creating migration directory #{config.migration_dir} because it didn't exist."
           FileUtils.mkdir_p(config.migration_dir)
@@ -45,7 +46,7 @@ module I18n
           f << <<-CONTENTS
 require 'i18n-migrations'
 
-class #{name.camelcase} < I18n::Migrations::Migration
+class #{name.camelcase}#{time} < I18n::Migrations::Migration
   def change
     # add('foo.bar', 'The foo of the bar')
   end

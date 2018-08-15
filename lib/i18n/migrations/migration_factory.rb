@@ -14,7 +14,9 @@ module I18n
       def play_migration(version:, locale:, data:, notes:, dictionary:, direction:)
         filename = File.join(@migration_dir, "#{version}.rb")
         require filename
-        migration_class_name = version.gsub(/^\d{12}_/, '').camelcase
+
+        raise("Can't parse version: #{version}") unless version =~ /^(\d{12})_(.*)/
+        migration_class_name = "#{$2.camelcase}#{$1}"
 
         migration = begin
           migration_class_name.constantize.new(locale, data, notes, dictionary, direction)

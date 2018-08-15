@@ -30,7 +30,7 @@ describe I18n::Migrations::MigrationFactory do
       File.write File.join(migration_dir, '201712061057_payments_page.rb'), <<-RUBY
 require 'i18n-migrations'
 
-class PaymentsPage < I18n::Migrations::Migration
+class PaymentsPage201712061057 < I18n::Migrations::Migration
   def change
     add 'payments.show.title', 'Transparent Classroom Receipt', es: 'Recibo para Transparent Classroom'
     add 'payments.show.hint.credit', 'This is a credit'
