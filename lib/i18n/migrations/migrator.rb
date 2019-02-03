@@ -126,7 +126,7 @@ end
 
       def get_google_spreadsheet(locale)
         GoogleSpreadsheet.new(locale,
-                              config.google_spreadsheets[locale],
+                              config.google_spreadsheet(locale),
                               config.google_service_account_key_path).sheet
       end
 
@@ -134,7 +134,7 @@ end
         GoogleTranslateDictionary.new(from_locale: config.main_locale,
                                       to_locale: locale,
                                       key: config.google_translate_api_key,
-                                      do_not_translate: config.do_not_translate)
+                                      do_not_translate: config.main_locale == locale ? {} : config.do_not_translate(locale))
       end
     end
   end

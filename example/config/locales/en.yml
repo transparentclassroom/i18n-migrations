@@ -1,0 +1,7 @@
+---
+en:
+  VERSION: 201901311613_add_colors
+  colors:
+    blue: blue
+    green: green
+    red: red

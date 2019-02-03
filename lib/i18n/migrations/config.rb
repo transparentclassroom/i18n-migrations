@@ -5,6 +5,10 @@ module I18n
     class Config
       CONFIG_FILE_NAME = '.i18n-migrations.yml'
 
+      def initialize(config_file_name = CONFIG_FILE_NAME)
+        @config_file_name = config_file_name
+      end
+
       def migration_dir
         get_file(:migration_dir)
       end
@@ -18,29 +22,29 @@ module I18n
       end
 
       def other_locales
-        get_value(:other_locales)
+        get_value(:other_locales).keys.map(&:to_sym)
       end
 
       def google_service_account_key_path
         get_file(:google_service_account_key_path)
       end
 
-      def google_spreadsheets
-        get_value(:google_spreadsheets)
+      def google_spreadsheet(locale)
+        get_value([:other_locales, locale, :google_spreadsheet])
+      end
+
+      def do_not_translate(locale)
+        get_value([:other_locales, locale, :do_not_translate])
       end
 
       def google_translate_api_key
         get_value(:google_translate_api_key)
       end
 
-      def do_not_translate
-        get_value(:do_not_translate)
-      end
-
       def read!
-        yaml_file = find_config_file(CONFIG_FILE_NAME)
+        yaml_file = find_config_file(@config_file_name)
         unless yaml_file
-          STDERR.puts "Can't find a #{CONFIG_FILE_NAME} file. Try running 'i18n-migrations setup'"
+          STDERR.puts "Can't find a #{@config_file_name} file. Try running 'i18n-migrations setup'"
           exit(1)
         end
 
@@ -67,19 +71,27 @@ module I18n
       private
 
       def get_value(key)
-        if @config.has_key?(key.to_s)
+        if key.is_a?(Array)
+          value = @config
+          key.each do |key_part|
+            if value&.has_key?(key_part.to_s)
+              value = value[key_part.to_s]
+            else
+              raise ArgumentError, "You must have defined #{key.join('/')} in #{@root_dir}/#{@config_file_name}"
+            end
+          end
+          value
+        elsif @config.has_key?(key.to_s)
           @config[key.to_s]
         else
-          STDERR.puts "You must have defined #{key} in #{@root_dir}/#{CONFIG_FILE_NAME}"
-          exit(1)
+          raise ArgumentError, "You must have defined #{key} in #{@root_dir}/#{@config_file_name}"
         end
       end
 
       def get_file(key)
         file = File.join(@root_dir, get_value(key))
         unless File.exist?(file)
-          STDERR.puts "#{File.expand_path(file)} does not exist"
-          exit(1)
+          raise ArgumentError, "#{File.expand_path(file)} does not exist, please create it."
         end
         file
       end
