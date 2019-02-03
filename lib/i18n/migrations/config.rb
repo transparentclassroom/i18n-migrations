@@ -22,7 +22,7 @@ module I18n
       end
 
       def other_locales
-        get_value(:other_locales).keys.map(&:to_sym)
+        get_value(:other_locales).keys
       end
 
       def google_service_account_key_path
@@ -34,7 +34,9 @@ module I18n
       end
 
       def do_not_translate(locale)
-        get_value([:other_locales, locale, :do_not_translate])
+        return {} if locale.to_s == main_locale
+
+        get_value([:other_locales, locale])['do_not_translate'] || {}
       end
 
       def google_translate_api_key

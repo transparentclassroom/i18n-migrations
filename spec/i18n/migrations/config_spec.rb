@@ -40,6 +40,10 @@ other_locales:
     do_not_translate:
     - Transparentes Klassenzimmerkonto
 
+  ca:
+    name: 'Catalan'
+    google_spreadsheet: https://docs.google.com/spreadsheets/d/444/edit
+
 google_service_account_key_path: i18n/google_drive_key.json
 
 google_translate_api_key: 4444
@@ -50,8 +54,11 @@ google_translate_api_key: 4444
     expect(c.migration_dir).to eq File.expand_path('example/i18n/migrate')
     expect(c.locales_dir).to eq File.expand_path('example/config/locales')
 
-    expect(c.other_locales).to eq([:es, :de])
+    expect(c.other_locales).to eq(%w(es de ca))
     expect(c.google_spreadsheet(:es)).to eq('https://docs.google.com/spreadsheets/d/1111/edit')
     expect(c.do_not_translate(:es)).to eq(['Aula Transparente', 'clase transparente'])
+
+    expect(c.do_not_translate(:en)).to eq({})
+    expect(c.do_not_translate(:ca)).to eq({})
   end
 end

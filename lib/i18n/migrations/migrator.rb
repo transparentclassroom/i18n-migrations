@@ -115,9 +115,11 @@ end
       private
 
       def each_locale(name = 'all')
-        (name == 'all' ? all_locale_names : [name]).each do |l|
-          yield locale_for(l)
+        threads = (name == 'all' ? all_locale_names : [name]).map do |l|
+          locale = locale_for(l)
+          Thread.new {yield locale}
         end
+        threads.each(&:join)
       end
 
       def all_locale_names
