@@ -29,17 +29,17 @@ case ARGV.shift
     end
 
   when 'migrate'
-    migrator.migrate
+    migrator.migrate(ARGV[0] || 'all')
 
   when 'rollback'
     migrator.rollback(ARGV[0] || 'all')
 
   when 'redo'
     migrator.rollback(ARGV[0] || 'all')
-    migrator.migrate
+    migrator.migrate(ARGV[0] || 'all')
 
   when 'pull'
-    migrator.pull ARGV[0] || 'all'
+    migrator.pull(ARGV[0] || 'all')
 
   when 'push'
     force = extract_option('-f')
