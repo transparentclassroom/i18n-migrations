@@ -11,7 +11,7 @@ require 'config'
 require 'locale'
 require 'migration_factory'
 
-ASYNC = false
+CONCURRENT_THREADS = 4
 
 # this class knows how to do all the things the cli needs done.
 # it mostly delegates to locale to do it, often asking multiple locales to do the same thing
@@ -106,7 +106,7 @@ end
       end
 
       def validate(locale_or_all)
-        each_locale(locale_or_all) do |locale|
+        each_locale(locale_or_all, async: false) do |locale|
           next if locale.main_locale?
           locale.update_info do |data, notes|
             locale.validate(data, notes)
@@ -116,17 +116,21 @@ end
 
       private
 
-      def each_locale(name = 'all')
+      def each_locale(name = 'all', async: true)
         locale_names = name == 'all' ? all_locale_names : [name]
 
-        if ASYNC
-          threads = locale_names.map do |l|
-            locale = locale_for(l)
-            Thread.new {yield locale}
+        if async
+          locale_names.each_slice(CONCURRENT_THREADS) do |some_locale_names|
+            threads = some_locale_names.map do |l|
+              locale = locale_for(l)
+              Thread.new {yield locale}
+            end
+            threads.each(&:join)
           end
-          threads.each(&:join)
         else
-          locale_names.each {|l| yield locale_for(l)}
+          locale_names.each do |l|
+            yield locale_for(l)
+          end
         end
       end
 
