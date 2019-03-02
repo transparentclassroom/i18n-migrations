@@ -11,6 +11,8 @@ require 'config'
 require 'locale'
 require 'migration_factory'
 
+ASYNC = false
+
 # this class knows how to do all the things the cli needs done.
 # it mostly delegates to locale to do it, often asking multiple locales to do the same thing
 module I18n
@@ -115,11 +117,17 @@ end
       private
 
       def each_locale(name = 'all')
-        threads = (name == 'all' ? all_locale_names : [name]).map do |l|
-          locale = locale_for(l)
-          Thread.new {yield locale}
+        locale_names = name == 'all' ? all_locale_names : [name]
+
+        if ASYNC
+          threads = locale_names.map do |l|
+            locale = locale_for(l)
+            Thread.new {yield locale}
+          end
+          threads.each(&:join)
+        else
+          locale_names.each {|l| yield locale_for(l)}
         end
-        threads.each(&:join)
       end
 
       def all_locale_names
