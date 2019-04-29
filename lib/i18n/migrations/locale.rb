@@ -1,7 +1,6 @@
 require 'fileutils'
 require 'yaml'
-require 'active_support/inflector'
-require 'active_support/core_ext/object'
+require 'active_support'
 require 'colorize'
 
 # this class does all the work, but doesn't hold config or do more than one locale
