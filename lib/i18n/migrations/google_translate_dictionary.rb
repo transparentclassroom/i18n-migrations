@@ -44,7 +44,7 @@ module I18n
       # returns updated after term, errors
       def fix(before, after, key: nil)
         is_html = format(key) == :html
-        errors = []
+        errors = ["#{@to_locale}: #{key}"]
 
         # do not translate
         @do_not_translate.each do |term, bad_translations|
@@ -116,7 +116,7 @@ module I18n
         end
 
 
-        [after, errors]
+        [after, errors.length > 1 ? errors : []]
       end
 
       private
