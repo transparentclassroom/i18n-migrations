@@ -92,6 +92,7 @@ end
             migrate(locale.name)
           end
           locale.push(sheet)
+          sleep 4
         end
       end
 
