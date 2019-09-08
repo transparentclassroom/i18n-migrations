@@ -1,32 +1,42 @@
 module I18n
   module Migrations
     class Migration
+      class Logger
+        def initialize(verbose: false)
+          @verbose = verbose
+        end
+
+        def info(message)
+          puts message if @verbose
+        end
+      end
+
+      # translations = facade over translations
       # locale = en | es | ...
-      # data = all keys -> all translations in this locale
-      # notes = some keys -> notes about the translation in this locale
       # dictionary = call dictionary.lookup(term) to get localized version of a term
       # direction = :up | :down (up when migrating, down when rolling back)
-      def initialize(locale, data, notes, dictionary, direction = :up, verbose = false)
-        @locale, @data, @notes, @dictionary, @direction, @verbose = locale, data, notes, dictionary, direction, verbose
+      def initialize(translations:, locale_code:, dictionary:, direction: :up, logger: Logger.new)
+        @translations, @locale_code, @dictionary, @direction, @logger =
+            translations, locale_code, dictionary, direction, logger
       end
 
       # Overrides can be provided, e.g. { es: 'El foo de la barro' }
       def add(key, term, overrides = {})
         if @direction == :up
-          info "adding #{key}"
+          @logger.info "adding #{key}"
           _add key, term, overrides
         else
-          info "unadding #{key}"
+          @logger.info "unadding #{key}"
           _rm key
         end
       end
 
       def mv(old_key, new_key)
         if @direction == :up
-          info "moving #{old_key} => #{new_key}"
+          @logger.info "moving #{old_key} => #{new_key}"
           _mv old_key, new_key
         else
-          info "moving back #{new_key} => #{old_key}"
+          @logger.info "moving back #{new_key} => #{old_key}"
           _mv new_key, old_key
         end
       end
@@ -34,10 +44,10 @@ module I18n
       # Overrides can be provided, e.g. { es: 'El foo de la barro' }
       def rm(key, old_term, overrides = {})
         if @direction == :up
-          info "removing #{key}"
+          @logger.info "removing #{key}"
           _rm key
         else
-          info "unremoving #{key}"
+          @logger.info "unremoving #{key}"
           _add key, old_term, overrides
         end
       end
@@ -45,10 +55,10 @@ module I18n
       # Overrides can be provided, e.g. { es: 'El foo de la barro' }
       def update(key, new_term, old_term, overrides = {})
         if @direction == :up
-          info "updating #{key}"
+          @logger.info "updating #{key}"
           _update key, new_term, overrides
         else
-          info "unupdating #{key}"
+          @logger.info "unupdating #{key}"
           _update key, old_term, {}
         end
       end
@@ -63,7 +73,7 @@ module I18n
       def _mv(from, to)
         assert_exists! from
         assert_does_not_exist! to
-        @data[to] = @data.delete(from)
+        @translations.move_term(from, to)
       end
 
       def _update(key, term, overrides)
@@ -73,27 +83,28 @@ module I18n
 
       def _rm(key)
         assert_exists! key
-        @data.delete(key)
-        @notes.delete(key)
-      end
-
-      def info(message)
-        puts message if @verbose
+        delete_translation key
       end
 
       def assert_exists!(key)
-        raise "#{key} doesn't exist in #{@locale}" unless @data.has_key?(key)
+        raise "#{key} doesn't exist in #{@locale_code}" unless @translations.get_term(key)
       end
 
       def assert_does_not_exist!(key)
-        raise "#{key} already exists in #{@locale}" if @data.has_key?(key)
+        raise "#{key} already exists in #{@locale_code}" if @translations.get_term(key)
+      end
+
+      # should delete key & return translation
+      def delete_translation(key)
+        @translations.delete_term(key)
       end
 
       def assign_translation(key, term, overrides)
-        if overrides[@locale.to_sym]
-          @data[key] = overrides[@locale.to_sym]
+        if overrides[@locale_code.to_sym]
+          @translations.set_term(key, value: overrides[@locale_code.to_sym])
         else
-          @data[key], @notes[key] = @dictionary.lookup(term, key: key)
+          value, notes = @dictionary.lookup(term, key: key)
+          @translations.set_term(key, value: value, notes: notes)
         end
       end
     end
