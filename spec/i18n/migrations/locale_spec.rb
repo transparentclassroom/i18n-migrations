@@ -1,7 +1,9 @@
 require 'spec_helper'
+
 require 'i18n/migrations/locale'
 require 'i18n/migrations/migration'
 require 'i18n/migrations/migration_factory'
+require 'i18n/migrations/crowd_translate_client'
 
 class OneMigration < I18n::Migrations::Migration
 	def change
@@ -157,6 +159,30 @@ es:
 			locale.push(sheet)
 
 			expect(sheet.data).to eq(data)
+		end
+	end
+
+	describe '#pull_from_crowd_translate' do
+		it 'should pull file and save it, updating versions' do
+			file_contents = <<-YAML
+---
+es:
+  VERSION: |
+    version1
+    version2
+  actions:
+    new: New
+			YAML
+
+			allow(RestClient).to receive(:get).with('https://crowd-translate.herokuapp.com/locales/es.yml') {
+				double(body: file_contents)
+			}
+
+			locale.pull_from_crowd_translate(I18n::Migrations::CrowdTranslateClient.new)
+
+			expect(File.read('/tmp/locale_spec/locales/es.yml')).to eq(file_contents)
+			expect(YAML::load(File.read('/tmp/locale_spec/es_remote_version.yml')))
+				.to eq({ 'es' => { 'VERSION' => ['version1', 'version2'] } })
 		end
 	end
 end

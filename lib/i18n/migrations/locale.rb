@@ -2,6 +2,7 @@ require 'fileutils'
 require 'yaml'
 require 'active_support'
 require 'colorize'
+require 'rest_client'
 
 # this class does all the work, but doesn't hold config or do more than one locale
 module I18n
@@ -92,6 +93,14 @@ module I18n
         puts "\n#{count} keys"
       end
 
+      def pull_from_crowd_translate(client)
+        data = client.get_locale_file(name)
+        File.open(File.join(@locales_dir, "#{name}.yml"), 'w') do |file|
+          file << data
+        end
+        write_remote_version(YAML::load(data)[name])
+      end
+
       def push(sheet)
         main_data = main_locale.read_data
         data, notes = read_data_and_notes
@@ -166,16 +175,18 @@ module I18n
       end
 
       def write_data_and_notes(data, notes)
-        write_to_file("#{@name}.yml", data)
+        write_data(data)
         write_to_file("../#{@name}_notes.yml", notes) unless main_locale?
       end
 
+      def write_data(data)
+        write_to_file("#{@name}.yml", data)
+      end
 
       def write_remote_version(data)
         write_to_file("../#{@name}_remote_version.yml",
                       { 'VERSION' => read_versions(data) })
       end
-
 
       def migrate_to_version(data, notes, version, direction)
         migrations.play_migration(version: version,

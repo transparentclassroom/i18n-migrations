@@ -4,12 +4,12 @@ require 'active_support/inflector'
 require 'active_support/core_ext/object'
 require 'colorize'
 
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-require 'google_translate_dictionary'
-require 'google_spreadsheet'
-require 'config'
-require 'locale'
-require 'migration_factory'
+require 'i18n/migrations/google_translate_dictionary'
+require 'i18n/migrations/google_spreadsheet'
+require 'i18n/migrations/config'
+require 'i18n/migrations/locale'
+require 'i18n/migrations/migration_factory'
+require 'i18n/migrations/crowd_translate_client'
 
 CONCURRENT_THREADS = 4
 
@@ -22,7 +22,7 @@ module I18n
         Locale.new(name,
                    locales_dir: config.locales_dir,
                    main_locale_name: config.main_locale,
-                   migrations: MigrationFactory.new(config.migration_dir),
+                   migrations: new_migrations,
                    dictionary: new_dictionary(name))
       end
 
@@ -96,6 +96,21 @@ end
         end
       end
 
+      def exp_pull(locale_or_all)
+        client = new_crowd_translate_client
+        each_locale(locale_or_all) do |locale|
+          locale.pull_from_crowd_translate(client)
+          migrate(locale.name)
+        end
+      end
+
+      def exp_push(locale_or_all, force = false)
+        client = new_crowd_translate_client
+        client.sync_migrations(new_migrations)
+        client.play_all_migrations
+        exp_pull(locale_or_all)
+      end
+
       def new_locale(new_locale, limit = nil)
         locale_for(new_locale).create
       end
@@ -124,7 +139,7 @@ end
           locale_names.each_slice(CONCURRENT_THREADS) do |some_locale_names|
             threads = some_locale_names.map do |l|
               locale = locale_for(l)
-              Thread.new {yield locale}
+              Thread.new { yield locale }
             end
             threads.each(&:join)
           end
@@ -151,6 +166,15 @@ end
                                       key: config.google_translate_api_key,
                                       do_not_translate: config.main_locale == locale ? {} : config.do_not_translate(locale))
       end
+
+      def new_migrations
+        MigrationFactory.new(config.migration_dir)
+      end
+
+      def new_crowd_translate_client
+        CrowdTranslateClient.new
+      end
+
     end
   end
 end

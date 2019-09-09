@@ -2,6 +2,7 @@
 
 require_relative '../lib/i18n/migrations/migrator'
 require_relative '../lib/i18n/migrations/config'
+require_relative '../lib/i18n/migrations/version'
 
 migrator = I18n::Migrations::Migrator.new
 
@@ -45,6 +46,13 @@ case ARGV.shift
     force = extract_option('-f')
     migrator.push(ARGV[0] || 'all', force)
 
+  when 'exp-pull'
+    migrator.exp_pull(ARGV[0] || 'all')
+
+  when 'exp-push'
+    force = extract_option('-f')
+    migrator.exp_push(ARGV[0] || 'all', force)
+
   when 'validate'
     migrator.validate(ARGV[0] || 'all')
 
@@ -62,7 +70,7 @@ case ARGV.shift
 
   else
     puts <<-USAGE
-Usage: im [command]
+Usage: i18n-migrate [command]
 
 Commands:
   setup - Setup a new project w/ i18n-migrations.
@@ -76,8 +84,6 @@ Commands:
   new_locale - Copy your current main locale file to a new language, translating all keys.
   version - Print version of locales.
 
+i18n-migrations version #{I18n::Migrations::VERSION}
     USAGE
-    puts
-    puts "Commands:"
-    puts
 end

@@ -11,6 +11,10 @@ module I18n
         Dir[@migration_dir + '/*.rb'].map { |name| File.basename(name).gsub('.rb', '') }
       end
 
+      def get_migration(version:)
+        File.read(File.join(@migration_dir, "#{version}.rb"))
+      end
+
       def play_migration(version:, locale:, data:, notes:, dictionary:, direction:)
         filename = File.join(@migration_dir, "#{version}.rb")
         require filename
