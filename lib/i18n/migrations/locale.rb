@@ -17,6 +17,7 @@ module I18n
       end
 
       def validate(data, notes)
+        fix_count, error_count = 0, 0
         main_data = main_locale.read_data
         main_data.each do |key, main_term|
           old_term = data[key]
@@ -28,6 +29,7 @@ module I18n
             puts "#{@name} (old): #{old_term}"
             puts "#{@name} (new): #{new_term}"
             puts
+            fix_count += 1
           end
           replace_errors_in_notes(notes, key, errors)
           if errors.length > 0
@@ -35,8 +37,12 @@ module I18n
             puts "#{@main_locale_name.bold}: #{main_term}"
             puts "#{@name.bold}: #{old_term}"
             puts
+            error_count += 1
           end
         end
+
+        puts "#{name}: #{fix_count} Fixes" if fix_count > 0
+        puts "#{name}: #{error_count} Errors" if error_count > 0
       end
 
       def update_info
@@ -128,11 +134,14 @@ module I18n
         count = 0
         main_data = main_locale.read_data
         main_data.each do |key, term|
-          new_data[key], new_notes[key] = @dictionary.lookup(term, key: key)
+          if key == 'VERSION'
+            new_data['VERSION'] = main_data['VERSION']
+          else
+            new_data[key], new_notes[key] = @dictionary.lookup(term, key: key)
+          end
           print '.'.green
           break if limit && limit < (count += 1)
         end
-        new_data['VERSION'] = main_data['VERSION']
         puts
         write_data_and_notes(new_data, new_notes)
       end

@@ -12,14 +12,11 @@ module I18n
       def lookup(term, key: nil)
         return [term, ''] if @from_locale == @to_locale
 
-        response = RestClient.get 'https://www.googleapis.com/language/translate/v2', {
-            accept: :json,
-            params: { key: @key,
-                      source: @from_locale,
-                      target: @to_locale,
-                      format: format(key),
-                      q: term }
-        }
+        response = google_translate(key: @key,
+                                    source: @from_locale,
+                                    target: @to_locale,
+                                    format: format(key),
+                                    q: term)
         translated_term = JSON.parse(response.body)['data']['translations'].first['translatedText']
         translated_term, errors = fix(term, translated_term, key: key)
         unless errors.empty?
@@ -134,6 +131,22 @@ module I18n
           return translation if after.include?(translation)
         end
         nil
+      end
+
+      def google_translate(key:, source:, target:, format:, q:)
+        params = { key: key,
+                   source: source,
+                   target: target,
+                   format: format,
+                   q: q }
+        url = 'https://www.googleapis.com/language/translate/v2'
+        begin
+          RestClient.get url, { accept: :json, params: params }
+        rescue Exception
+          puts "Google Translate Error: #{$!.message}"
+          puts "  #{url}?#{params.map { |k, v| [k, URI.escape(v.to_s)].join('=') }.join('&')}"
+          raise
+        end
       end
     end
   end
