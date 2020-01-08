@@ -11,8 +11,6 @@ require 'i18n/migrations/locale'
 require 'i18n/migrations/migration_factory'
 require 'i18n/migrations/crowd_translate_client'
 
-CONCURRENT_THREADS = 3
-
 # this class knows how to do all the things the cli needs done.
 # it mostly delegates to locale to do it, often asking multiple locales to do the same thing
 module I18n
@@ -84,7 +82,7 @@ end
       end
 
       def push(locale_or_all, force = false)
-        each_locale(locale_or_all) do |locale|
+        each_locale(locale_or_all, concurrency: config.push_concurrency) do |locale|
           next if locale.main_locale?
           sheet = get_google_spreadsheet(locale.name)
           unless force
@@ -92,7 +90,7 @@ end
             migrate(locale.name)
           end
           locale.push(sheet)
-          sleep 4
+          wait
         end
       end
 
@@ -130,13 +128,12 @@ end
         end
       end
 
-      private
-
-      def each_locale(name = 'all', async: true)
+      private def each_locale(name = 'all', async: true, concurrency: config.concurrency)
         locale_names = name == 'all' ? all_locale_names : [name]
 
+        puts "Using #{concurrency} concurrency"
         if async
-          locale_names.each_slice(CONCURRENT_THREADS) do |some_locale_names|
+          locale_names.each_slice(concurrency) do |some_locale_names|
             threads = some_locale_names.map do |l|
               locale = locale_for(l)
               Thread.new { yield locale }
@@ -150,31 +147,37 @@ end
         end
       end
 
-      def all_locale_names
+      private def all_locale_names
         [config.main_locale] + config.other_locales
       end
 
-      def get_google_spreadsheet(locale)
+      private def get_google_spreadsheet(locale)
         GoogleSpreadsheet.new(locale,
                               config.google_spreadsheet(locale),
                               config.google_service_account_key_path).sheet
       end
 
-      def new_dictionary(locale)
+      private def new_dictionary(locale)
         GoogleTranslateDictionary.new(from_locale: config.main_locale,
                                       to_locale: locale,
                                       key: config.google_translate_api_key,
                                       do_not_translate: config.main_locale == locale ? {} : config.do_not_translate(locale))
       end
 
-      def new_migrations
+      private def new_migrations
         MigrationFactory.new(config.migration_dir)
       end
 
-      def new_crowd_translate_client
+      private def new_crowd_translate_client
         CrowdTranslateClient.new
       end
 
+      private def wait
+        if config.wait_seconds > 0
+          puts "Pausing #{config.wait_seconds}s to not run into Google Translate API throttling..."
+          sleep config.wait_seconds
+        end
+      end
     end
   end
 end
