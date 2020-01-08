@@ -4,6 +4,15 @@ migration_dir: i18n/migrate
 # this is where your locale files will live (en.yml, es.yml, etc). it will be relative to your config file
 locales_dir: config/locales
 
+# number of threads to concurrently perform migration operations for locales (optional)
+# concurrency: 4
+
+# number of threads to concurrently perform push operation for locales (optional)
+# push_concurrency: 4
+
+# seconds to wait time between push operations per thread, can be used to avoid API throttling (optional)
+# wait_seconds: 0
+
 # this is the locale you will be translating from
 main_locale: en
 
