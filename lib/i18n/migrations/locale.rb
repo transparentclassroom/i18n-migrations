@@ -2,6 +2,7 @@ require 'fileutils'
 require 'yaml'
 require 'active_support'
 require 'colorize'
+require 'active_support/core_ext/object'
 
 # this class does all the work, but doesn't hold config or do more than one locale
 module I18n
