@@ -11,7 +11,7 @@ require 'i18n/migrations/locale'
 require 'i18n/migrations/migration_factory'
 require 'i18n/migrations/crowd_translate_client'
 
-CONCURRENT_THREADS = 4
+CONCURRENT_THREADS = 3
 
 # this class knows how to do all the things the cli needs done.
 # it mostly delegates to locale to do it, often asking multiple locales to do the same thing
