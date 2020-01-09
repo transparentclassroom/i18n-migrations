@@ -17,8 +17,8 @@ describe I18n::Migrations::CrowdTranslateClient do
 
   describe '#sync_migrations' do
     it 'should do nothing if migrations are the same' do
-      allow(RestClient).to receive(:get).with('https://crowd-translate.herokuapp.com/migrations.json') {
-        double(body: ['one', 'two'].to_json)
+      allow(client).to receive(:get).with('migrations.json') {
+        ['one', 'two'].to_json
       }
 
       File.write(File.join(migration_dir, 'one.rb'), 'foo')
@@ -28,8 +28,8 @@ describe I18n::Migrations::CrowdTranslateClient do
     end
 
     it 'should add missing migrations' do
-      allow(RestClient).to receive(:get).with('https://crowd-translate.herokuapp.com/migrations.json') {
-        double(body: ['one'].to_json)
+      allow(client).to receive(:get).with('migrations.json') {
+        ['one'].to_json
       }
 
       contents = <<-CONTENTS
@@ -45,18 +45,18 @@ end
       File.write File.join(migration_dir, 'one.rb'), 'foo'
       File.write File.join(migration_dir, 'two.rb'), contents
 
-      expect(RestClient).to receive(:put)
-                                .with('https://crowd-translate.herokuapp.com/migrations/two.json',
-                                      params: { ruby: contents }) {
-                                  double(body: "OK")
-                                }
+      expect(client).to receive(:put)
+                            .with('migrations/two.json',
+                                  migration: { ruby_file: contents }) {
+                              double(body: "OK")
+                            }
 
       client.sync_migrations(migrations)
     end
 
     it "should blow up if the server has migrations we don't know about" do
-      allow(RestClient).to receive(:get).with('https://crowd-translate.herokuapp.com/migrations.json') {
-        double(body: ['one', 'two', 'four'].to_json)
+      allow(client).to receive(:get).with('migrations.json') {
+        ['one', 'two', 'four'].to_json
       }
 
       File.write(File.join(migration_dir, 'one.rb'), 'foo')

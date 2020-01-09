@@ -1,4 +1,4 @@
-require 'rest-client'
+require 'faraday'
 
 module I18n
   module Migrations
@@ -141,7 +141,10 @@ module I18n
                    q: q }
         url = 'https://www.googleapis.com/language/translate/v2'
         begin
-          RestClient.get url, { accept: :json, params: params }
+          Faraday.get(url) do |req|
+            req.headers[:accept] = :json
+            req.params = params
+          end
         rescue Exception
           puts "Google Translate Error: #{$!.message}"
           puts "  #{url}?#{params.map { |k, v| [k, URI.escape(v.to_s)].join('=') }.join('&')}"

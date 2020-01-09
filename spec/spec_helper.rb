@@ -48,3 +48,5 @@ class FakeSheet
     # nothin'
   end
 end
+
+ENV['CROWD_TRANSLATE_API_TOKEN'] ||= 'test-token'
