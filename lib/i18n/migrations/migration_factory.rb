@@ -12,7 +12,11 @@ module I18n
       end
 
       def get_migration(version:)
-        File.read(File.join(@migration_dir, "#{version}.rb"))
+        File.read(migration_file(version: version))
+      end
+
+      def migration_file(version:)
+        File.join(@migration_dir, "#{version}.rb")
       end
 
       def play_migration(version:, locale:, data:, notes:, dictionary:, direction:)

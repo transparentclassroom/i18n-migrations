@@ -46,10 +46,10 @@ case ARGV.shift
     force = extract_option('-f')
     migrator.push(ARGV[0] || 'all', force)
 
-  when 'exp-pull'
+  when 'ct-pull'
     migrator.exp_pull(ARGV[0] || 'all')
 
-  when 'exp-push'
+  when 'ct-push'
     force = extract_option('-f')
     migrator.exp_push(ARGV[0] || 'all', force)
 
@@ -83,6 +83,9 @@ Commands:
   validate - check all translations according to our rules and fix what we can
   new_locale - Copy your current main locale file to a new language, translating all keys.
   version - Print version of locales.
+
+  ct-pull - Pull from CrowdTranslate
+  ct-push - Push to CrowdTranslate
 
 i18n-migrations version #{I18n::Migrations::VERSION}
     USAGE
