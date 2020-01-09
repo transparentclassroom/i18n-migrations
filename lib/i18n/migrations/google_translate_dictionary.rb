@@ -143,7 +143,7 @@ module I18n
         url = 'https://www.googleapis.com/language/translate/v2'
         begin
           Faraday.get(url) do |req|
-            req.headers[:accept] = :json
+            req.headers['Content-Type'] = 'application/json'
             req.params = params
           end
         rescue Exception

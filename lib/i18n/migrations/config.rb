@@ -4,6 +4,8 @@ module I18n
   module Migrations
     class Config
       CONFIG_FILE_NAME = '.i18n-migrations.yml'
+      DEFAULT_CONCURRENCY = 4
+      DEFAULT_WAIT_SECONDS = 0
 
       def initialize(config_file_name = CONFIG_FILE_NAME)
         @config_file_name = config_file_name
@@ -43,6 +45,18 @@ module I18n
         get_value(:google_translate_api_key)
       end
 
+      def concurrency
+        get_value(:concurrency, DEFAULT_CONCURRENCY)
+      end
+
+      def push_concurrency
+        get_value(:push_concurrency, concurrency)
+      end
+
+      def wait_seconds
+        get_value(:wait_seconds, DEFAULT_WAIT_SECONDS)
+      end
+
       def read!
         yaml_file = find_config_file(@config_file_name)
         unless yaml_file
@@ -72,7 +86,7 @@ module I18n
 
       private
 
-      def get_value(key)
+      def get_value(key, default = nil)
         if key.is_a?(Array)
           value = @config
           key.each do |key_part|
@@ -85,6 +99,8 @@ module I18n
           value
         elsif @config.has_key?(key.to_s)
           @config[key.to_s]
+        elsif default.present?
+          default
         else
           raise ArgumentError, "You must have defined #{key} in #{@root_dir}/#{@config_file_name}"
         end
