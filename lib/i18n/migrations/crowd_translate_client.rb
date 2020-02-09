@@ -54,7 +54,7 @@ module I18n
       end
 
       def put(path, params = {})
-        puts "PUT #{path} #{params}".bold
+        puts "PUT #{path} #{params.to_s[0..50]}#{'...' if params.to_s.length > 50}".bold
         parse_response @faraday.put path, params
       end
 
