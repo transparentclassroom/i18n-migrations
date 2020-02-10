@@ -11,65 +11,58 @@ def extract_option(name)
 end
 
 case ARGV.shift
-  when 'setup'
-    puts 'Where should we create a default config file? [.]'
-    dir = gets.chomp
-    dir = dir == '' ? '.' : dir
-    file = I18n::Migrations::Config.copy_default_config_file(dir)
+when 'setup'
+  puts 'Where should we create a default config file? [.]'
+  dir = gets.chomp
+  dir = dir == '' ? '.' : dir
+  file = I18n::Migrations::Config.copy_default_config_file(dir)
 
-    puts 'You will need to configure this file before you can get going.'
-    puts File.expand_path(file)
+  puts 'You will need to configure this file before you can get going.'
+  puts File.expand_path(file)
 
-  when 'new'
-    name = ARGV.shift
-    if name
-      migrator.new_migration name
-    else
-      STDERR.puts 'Usage: im new [name]'
-      exit 1
-    end
-
-  when 'migrate'
-    migrator.migrate(ARGV[0] || 'all')
-
-  when 'rollback'
-    migrator.rollback(ARGV[0] || 'all')
-
-  when 'redo'
-    migrator.rollback(ARGV[0] || 'all')
-    migrator.migrate(ARGV[0] || 'all')
-
-  when 'pull'
-    migrator.pull(ARGV[0] || 'all')
-
-  when 'push'
-    force = extract_option('-f')
-    migrator.push(ARGV[0] || 'all', force)
-
-  when 'ct-pull'
-    migrator.exp_pull(ARGV[0] || 'all')
-
-  when 'ct-push'
-    force = extract_option('-f')
-    migrator.exp_push(ARGV[0] || 'all', force)
-
-  when 'validate'
-    migrator.validate(ARGV[0] || 'all')
-
-  when 'new_locale'
-    locale = ARGV.shift
-    if locale
-      migrator.new_locale(locale)
-    else
-      STDERR.puts 'Usage: im new_locale [name]'
-      exit 1
-    end
-
-  when 'version'
-    migrator.version
-
+when 'new'
+  name = ARGV.shift
+  if name
+    migrator.new_migration name
   else
-    puts <<-USAGE
+    STDERR.puts 'Usage: im new [name]'
+    exit 1
+  end
+
+when 'migrate'
+  migrator.migrate(ARGV[0] || 'all')
+
+when 'rollback'
+  migrator.rollback(ARGV[0] || 'all')
+
+when 'redo'
+  migrator.rollback(ARGV[0] || 'all')
+  migrator.migrate(ARGV[0] || 'all')
+
+when 'pull'
+  migrator.pull(ARGV[0] || 'all')
+
+when 'push'
+  force = extract_option('-f')
+  migrator.push(ARGV[0] || 'all', force)
+
+when 'validate'
+  migrator.validate(ARGV[0] || 'all')
+
+when 'new_locale'
+  locale = ARGV.shift
+  if locale
+    migrator.new_locale(locale)
+  else
+    STDERR.puts 'Usage: im new_locale [name]'
+    exit 1
+  end
+
+when 'version'
+  migrator.version
+
+else
+  puts <<-USAGE
 Usage: i18n-migrate [command]
 
 Commands:
@@ -84,9 +77,6 @@ Commands:
   new_locale - Copy your current main locale file to a new language, translating all keys.
   version - Print version of locales.
 
-  ct-pull - Pull from CrowdTranslate
-  ct-push - Push to CrowdTranslate
-
 i18n-migrations version #{I18n::Migrations::VERSION}
-    USAGE
+  USAGE
 end

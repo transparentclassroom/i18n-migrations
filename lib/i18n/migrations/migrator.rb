@@ -4,12 +4,12 @@ require 'active_support/inflector'
 require 'active_support/core_ext/object'
 require 'colorize'
 
-require 'i18n/migrations/google_translate_dictionary'
-require 'i18n/migrations/google_spreadsheet'
+require 'i18n/migrations/backends/crowd_translate_backend'
+require 'i18n/migrations/backends/google_spreadsheets_backend'
 require 'i18n/migrations/config'
+require 'i18n/migrations/google_translate_dictionary'
 require 'i18n/migrations/locale'
 require 'i18n/migrations/migration_factory'
-require 'i18n/migrations/crowd_translate_client'
 
 # this class knows how to do all the things the cli needs done.
 # it mostly delegates to locale to do it, often asking multiple locales to do the same thing
@@ -58,9 +58,7 @@ end
 
       def migrate(locale_or_all = 'all')
         each_locale(locale_or_all) do |locale|
-          locale.update_info do |data, notes|
-            locale.migrate(data, notes)
-          end
+          locale.migrate!
         end
       end
 
@@ -75,41 +73,18 @@ end
       def pull(locale_or_all)
         each_locale(locale_or_all) do |locale|
           next if locale.main_locale?
-          sheet = get_google_spreadsheet(locale.name)
-          locale.pull(sheet)
-          migrate(locale.name)
+          backend.pull(locale)
         end
       end
 
       def push(locale_or_all, force = false)
         each_locale(locale_or_all, concurrency: config.push_concurrency) do |locale|
-          next if locale.main_locale?
-          sheet = get_google_spreadsheet(locale.name)
-          unless force
-            locale.pull(sheet)
-            migrate(locale.name)
-          end
-          locale.push(sheet)
+          backend.push(locale, force)
           wait
         end
       end
 
-      def exp_pull(locale_or_all)
-        client = new_crowd_translate_client
-        each_locale(locale_or_all) do |locale|
-          locale.pull_from_crowd_translate(client)
-          migrate(locale.name)
-        end
-      end
-
-      def exp_push(locale_or_all, force = false)
-        client = new_crowd_translate_client
-        client.sync_migrations(new_migrations)
-        client.play_all_migrations
-        exp_pull(locale_or_all)
-      end
-
-      def new_locale(new_locale, limit = nil)
+      def new_locale(new_locale)
         locale_for(new_locale).create
       end
 
@@ -128,11 +103,13 @@ end
         end
       end
 
-      private def each_locale(name = 'all', async: true, concurrency: config.concurrency)
+      private def each_locale(name = 'all',
+                              async: config.google_spreadsheet?,
+                              concurrency: config.concurrency)
         locale_names = name == 'all' ? all_locale_names : [name]
 
-        puts "Using #{concurrency} concurrency"
         if async
+          puts "Using #{concurrency} concurrency"
           locale_names.each_slice(concurrency) do |some_locale_names|
             threads = some_locale_names.map do |l|
               locale = locale_for(l)
@@ -151,12 +128,6 @@ end
         [config.main_locale] + config.other_locales
       end
 
-      private def get_google_spreadsheet(locale)
-        GoogleSpreadsheet.new(locale,
-                              config.google_spreadsheet(locale),
-                              config.google_service_account_key_path).sheet
-      end
-
       private def new_dictionary(locale)
         GoogleTranslateDictionary.new(from_locale: config.main_locale,
                                       to_locale: locale,
@@ -168,8 +139,12 @@ end
         MigrationFactory.new(config.migration_dir)
       end
 
-      private def new_crowd_translate_client
-        CrowdTranslateClient.new
+      private def backend
+        @backend ||= if config.crowd_translate?
+                       Backends::CrowdTranslateBackend.new
+                     else
+                       Backends::GoogleSpreadsheetsBackend.new(config)
+                     end
       end
 
       private def wait

@@ -13,7 +13,7 @@ module I18n
 
       def initialize(name, locales_dir:, main_locale_name:, migrations:, dictionary:)
         @name, @locales_dir, @main_locale_name, @migrations, @dictionary =
-            name, locales_dir, main_locale_name, migrations, dictionary
+          name, locales_dir, main_locale_name, migrations, dictionary
       end
 
       def validate(data, notes)
@@ -51,6 +51,12 @@ module I18n
         write_data_and_notes(data, notes)
       end
 
+      def migrate!
+        update_info do |data, notes|
+          migrate(data, notes)
+        end
+      end
+
       def migrate(data, notes)
         missing_versions = (@migrations.all_versions - read_versions(data)).sort
         if missing_versions.empty?
@@ -73,60 +79,6 @@ module I18n
         raise "Can't find #{last_version}.rb to rollback" unless @migrations.all_versions.include?(last_version)
 
         migrate_to_version(data, notes, last_version, :down)
-      end
-
-      def pull(sheet)
-        puts "Pulling #{@name}"
-        data = {}
-        notes = {}
-        count = 0
-
-        (2..sheet.num_rows).each do |row|
-          key, value, note = sheet[row, 1], sheet[row, 3], sheet[row, 4]
-          if key.present?
-            assign_complex_key(data, key.split('.'), value.present? ? value : '')
-            if note.present?
-              assign_complex_key(notes, key.split('.'), note)
-            end
-            count += 1
-            print '.'
-          end
-        end
-
-        write_data_and_notes(data, notes)
-        write_remote_version(data)
-
-        puts "\n#{count} keys"
-      end
-
-      def pull_from_crowd_translate(client)
-        data = client.get_locale_file(name)
-        File.open(File.join(@locales_dir, "#{name}.yml"), 'w') do |file|
-          file << data
-        end
-        write_remote_version(YAML::load(data)[name])
-      end
-
-      def push(sheet)
-        main_data = main_locale.read_data
-        data, notes = read_data_and_notes
-        row = 2
-
-        puts "Pushing #{@name}"
-
-        main_data.each do |key, value|
-          sheet[row, 1] = key
-          sheet[row, 2] = value
-          sheet[row, 3] = data[key]
-          sheet[row, 4] = notes[key]
-          row += 1
-          print '.'
-        end
-
-        sheet.synchronize
-        write_remote_version(data)
-
-        puts "\n#{main_data.keys.length} keys"
       end
 
       def create(limit = nil)
@@ -158,25 +110,6 @@ module I18n
         read_from_file("#{@name}.yml")
       end
 
-      private
-
-      def main_locale
-        Locale.new(@main_locale_name,
-                   locales_dir: @locales_dir,
-                   main_locale_name: @main_locale_name,
-                   migrations: @migrations,
-                   dictionary: nil) # should not use dictionary on main locale
-      end
-
-      def replace_errors_in_notes(all_notes, key, errors)
-        return if all_notes[key].blank? && errors.empty?
-
-        notes = all_notes[key]
-        notes = notes.present? ? notes.split("\n") : []
-        notes = notes.reject { |n| n.start_with?("[error:") }
-        all_notes[key] = (errors.map { |e| "[error: #{e}]" } + notes).join("\n")
-      end
-
       def read_data_and_notes
         data = read_data
         notes = main_locale? ? {} : read_from_file("../#{@name}_notes.yml")
@@ -188,13 +121,49 @@ module I18n
         write_to_file("../#{@name}_notes.yml", notes) unless main_locale?
       end
 
-      def write_data(data)
-        write_to_file("#{@name}.yml", data)
+      def write_raw_data(filename, data)
+        File.open(File.join(@locales_dir, filename), 'w') do |file|
+          file << data
+        end
       end
 
       def write_remote_version(data)
         write_to_file("../#{@name}_remote_version.yml",
                       { 'VERSION' => read_versions(data) })
+      end
+
+      def main_locale
+        Locale.new(@main_locale_name,
+                   locales_dir: @locales_dir,
+                   main_locale_name: @main_locale_name,
+                   migrations: @migrations,
+                   dictionary: nil) # should not use dictionary on main locale
+      end
+
+      def assign_complex_key(hash, key, value)
+        if key.length == 0
+          # should never get here
+        elsif key.length == 1
+          hash[key[0]] = value
+        else
+          hash[key[0]] ||= {}
+          assign_complex_key(hash[key[0]], key[1..-1], value)
+        end
+      end
+
+      private
+
+      def replace_errors_in_notes(all_notes, key, errors)
+        return if all_notes[key].blank? && errors.empty?
+
+        notes = all_notes[key]
+        notes = notes.present? ? notes.split("\n") : []
+        notes = notes.reject { |n| n.start_with?("[error:") }
+        all_notes[key] = (errors.map { |e| "[error: #{e}]" } + notes).join("\n")
+      end
+
+      def write_data(data)
+        write_to_file("#{@name}.yml", data)
       end
 
       def migrate_to_version(data, notes, version, direction)
@@ -235,20 +204,7 @@ module I18n
           value = hash[key]
           assign_complex_key(complex_hash, key.split('.'), value.present? ? value : '')
         end
-        File.open(File.join(@locales_dir, filename), 'w') do |file|
-          file << { @name => complex_hash }.to_yaml
-        end
-      end
-
-      def assign_complex_key(hash, key, value)
-        if key.length == 0
-          # should never get here
-        elsif key.length == 1
-          hash[key[0]] = value
-        else
-          hash[key[0]] ||= {}
-          assign_complex_key(hash[key[0]], key[1..-1], value)
-        end
+        write_raw_data(filename, { @name => complex_hash }.to_yaml)
       end
 
       # flattens new_hash and adds it to hash

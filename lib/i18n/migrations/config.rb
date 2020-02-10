@@ -6,6 +6,9 @@ module I18n
       CONFIG_FILE_NAME = '.i18n-migrations.yml'
       DEFAULT_CONCURRENCY = 4
       DEFAULT_WAIT_SECONDS = 0
+      CROWD_TRANSLATE_BACKEND = 'crowd_translate'
+      GOOGLE_SPREADSHEET_BACKEND = 'google_spreadsheets'
+      VALID_BACKENDS = [CROWD_TRANSLATE_BACKEND, GOOGLE_SPREADSHEET_BACKEND]
 
       def initialize(config_file_name = CONFIG_FILE_NAME)
         @config_file_name = config_file_name
@@ -21,6 +24,20 @@ module I18n
 
       def main_locale
         get_value(:main_locale)
+      end
+
+      def backend
+        value = get_value(:backend)
+        raise ArgumentError, "Backend must be one of #{VALID_BACKENDS}" unless VALID_BACKENDS.include?(value)
+        value
+      end
+
+      def crowd_translate?
+        backend == CROWD_TRANSLATE_BACKEND
+      end
+
+      def google_spreadsheet?
+        backend == GOOGLE_SPREADSHEET_BACKEND
       end
 
       def other_locales
@@ -67,12 +84,12 @@ module I18n
         @root_dir = File.dirname(yaml_file)
 
         @config = begin
-          YAML::load(File.read(yaml_file))
-        rescue Psych::SyntaxError
-          STDERR.puts("YAML configuration file contains invalid syntax.")
-          STDERR.puts($!.message)
-          exit(1)
-        end
+                    YAML::load(File.read(yaml_file))
+                  rescue Psych::SyntaxError
+                    STDERR.puts("YAML configuration file contains invalid syntax.")
+                    STDERR.puts($!.message)
+                    exit(1)
+                  end
 
         # todo check for required keys
         self

@@ -1,9 +1,9 @@
 require 'spec_helper'
-require 'i18n/migrations/crowd_translate_client'
+require 'i18n/migrations/backends/crowd_translate_client'
 require 'i18n/migrations/migration_factory'
 
-describe I18n::Migrations::CrowdTranslateClient do
-  let(:client) { I18n::Migrations::CrowdTranslateClient.new }
+describe I18n::Migrations::Backends::CrowdTranslateClient do
+  let(:client) { I18n::Migrations::Backends::CrowdTranslateClient.new }
   let(:migration_dir) { '/tmp/migration_factory_spec/migration' }
   let(:migrations) { I18n::Migrations::MigrationFactory.new(migration_dir) }
 
