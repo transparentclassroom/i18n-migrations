@@ -5,7 +5,10 @@ require 'i18n/migrations/locale'
 require_relative '../simple_migrations'
 
 describe I18n::Migrations::Backends::CrowdTranslateBackend do
-  let(:backend) { I18n::Migrations::Backends::CrowdTranslateBackend.new }
+  let(:config) { OpenStruct.new(
+    crowd_translate_server_url: 'https://ct.com/c/1'
+  ) }
+  let(:backend) { I18n::Migrations::Backends::CrowdTranslateBackend.new(config) }
   let(:locales_dir) { '/tmp/locale_spec/locales' }
   let(:migrations) {
     m = SimpleMigrations.new

@@ -141,7 +141,7 @@ end
 
       private def backend
         @backend ||= if config.crowd_translate?
-                       Backends::CrowdTranslateBackend.new
+                       Backends::CrowdTranslateBackend.new(config)
                      else
                        Backends::GoogleSpreadsheetsBackend.new(config)
                      end

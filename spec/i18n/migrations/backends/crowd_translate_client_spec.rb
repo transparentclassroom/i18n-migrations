@@ -3,7 +3,8 @@ require 'i18n/migrations/backends/crowd_translate_client'
 require 'i18n/migrations/migration_factory'
 
 describe I18n::Migrations::Backends::CrowdTranslateClient do
-  let(:client) { I18n::Migrations::Backends::CrowdTranslateClient.new }
+  let(:client) { I18n::Migrations::Backends::CrowdTranslateClient.new(api_token: 'xxx',
+                                                                      server_url: 'http://ct.com/c1') }
   let(:migration_dir) { '/tmp/migration_factory_spec/migration' }
   let(:migrations) { I18n::Migrations::MigrationFactory.new(migration_dir) }
 

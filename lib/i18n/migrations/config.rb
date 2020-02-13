@@ -52,6 +52,14 @@ module I18n
         get_value([:other_locales, locale, :google_spreadsheet])
       end
 
+      def crowd_translate_api_token
+        get_value(:crowd_translate_api_token)
+      end
+
+      def crowd_translate_server_url
+        get_value(:crowd_translate_server_url)
+      end
+
       def do_not_translate(locale)
         return {} if locale.to_s == main_locale
 
