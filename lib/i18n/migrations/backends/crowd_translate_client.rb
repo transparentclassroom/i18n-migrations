@@ -5,10 +5,14 @@ module I18n
   module Migrations
     module Backends
       class CrowdTranslateClient
-        def initialize(api_token:, server_url:)
+        def initialize
+          token = ENV['CROWD_TRANSLATE_API_TOKEN']
+          raise("You must define CROWD_TRANSLATE_API_TOKEN in order to talk to Crowd Translate") unless token.present?
+
+          server = ENV['CROWD_TRANSLATE_SERVER'] || 'https://crowd-translate.herokuapp.com'
           @faraday = Faraday.new(
-            url: File.join(server_url, '/api/v1'),
-            headers: { 'X-CrowdTranslateApiToken' => api_token },
+            url: "#{server}/api/v1",
+            headers: { 'X-CrowdTranslateApiToken' => token },
           )
         end
 

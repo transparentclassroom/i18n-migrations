@@ -6,9 +6,8 @@ module I18n
       class CrowdTranslateBackend
         attr_reader :client
 
-        def initialize(config)
-          @client = CrowdTranslateClient.new(api_token: config.crowd_translate_api_token,
-                                             server_url: config.crowd_translate_server_url)
+        def initialize
+          @client = CrowdTranslateClient.new
         end
 
         def pull(locale)

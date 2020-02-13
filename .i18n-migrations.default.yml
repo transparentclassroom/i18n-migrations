@@ -4,38 +4,8 @@ migration_dir: i18n/migrate
 # this is where your locale files will live (en.yml, es.yml, etc). it will be relative to your config file
 locales_dir: config/locales
 
-# this is the locale you will be translating from
-main_locale: en
-
-# put all other locales you want to use here, if they don't already exist, add them with i18n-migrations new_locale es
-# each locale needs:
-#   name: Spanish
-#   # a spreadsheet that translators will use to do their work, these are the links to them
-#   google_spreadsheet: https://docs.google.com/spreadsheets/d/ID/edit
-#   # these are strings that should not show up in our translations. As in translations of proper nouns.
-#   do_not_translate:
-#   - Aula Transparente
-#   - clase transparente
-other_locales:
-  es:
-    name: Spanish
-    # google_spreadsheet: https://docs.google.com/spreadsheets/d/1SpxQWX3l4pwW9tyKhfo2VPemhn6olJYTPV0dudknpRE/edit
-    do_not_translate:  # put things like your product name here along with any possible mistranslations
-      "I18n Migrations":
-        - I18n Migraciones
-
-# you need a service account key in order to access google spreadsheets. This is the path to it, relative to your config file
-google_service_account_key_path: i18n/google_drive_key.json
-
 # choose either google_spreadsheets or crowd_translate as a backend
 backend: google_spreadsheets
-
-# if you are using crowd translate, uncomment these lines and make sure they are correct
-# crowd_translate_server_url: https://crowd-translate.herokuapp.com/c/X
-# crowd_translate_api_token: xxxxxxxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxx
-
-# this is your api key to use google translate
-google_translate_api_key: [INSERT_GOOGLE_TRANSLATE_API_KEY]
 
 # number of threads to concurrently perform migration operations for locales (optional)
 # concurrency: 4
@@ -45,3 +15,25 @@ google_translate_api_key: [INSERT_GOOGLE_TRANSLATE_API_KEY]
 
 # seconds to wait time between push operations per thread, can be used to avoid API throttling (optional)
 # wait_seconds: 0
+
+# this is the locale you will be translating from
+main_locale: en
+
+# put all other locales you want to use here, if they don't already exist, add them with i18n-migrations new-locale es
+other_locales:
+  - es
+
+# you need a service account key in order to access google spreadsheets. This is the path to it, relative to your config file
+google_service_account_key_path: i18n/google_drive_key.json
+
+# each locale will have a spreadsheet that translators will use to do their work, these are the links to them
+google_spreadsheets:
+  es: https://docs.google.com/spreadsheets/d/YOUR_SPREADSHEET_ID/edit
+
+# this is your api key to use google translate
+google_translate_api_key: [INSERT_GOOGLE_TRANSLATE_API_KEY]
+
+# put things like your product name here along with any possible mistranslations
+do_not_translate:
+  "I18n Migrations":
+    - I18n Migraciones
