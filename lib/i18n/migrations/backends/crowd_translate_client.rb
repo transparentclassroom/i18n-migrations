@@ -28,6 +28,11 @@ module I18n
           put("migrations/#{version}.json", migration: { ruby_file: ruby_file })
         end
 
+        def put_locale(locale_code, name:, yaml_file:, yaml_notes_file:)
+          put("locales/#{locale_code}",
+              locale: { name: name, yaml_file: yaml_file, yaml_notes_file: yaml_notes_file })
+        end
+
         private
 
         def get(path)

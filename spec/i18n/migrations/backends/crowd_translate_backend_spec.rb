@@ -75,46 +75,67 @@ end
     end
   end
 
-  describe '#pull_from_crowd_translate' do
-    let(:simple_migrations) {
+  context 'with locale' do
+    let(:simple_migrations) do
       m = SimpleMigrations.new
       m.add('one', SimpleMigrations::OneMigration)
       m.add('two', SimpleMigrations::TwoMigration)
       m
-    }
+    end
 
-    it 'should pull file and save it, updating versions' do
-      file_contents = <<-YAML
----
-es:
-  VERSION: |
-    version1
-    version2
-  actions:
-    new: New
+    let(:locale_file_contents) do
+      <<~YAML
+        ---
+        es:
+          VERSION: |
+            version1
+            version2
+          actions:
+            new: New
       YAML
+    end
 
-      allow(client).to receive(:get_locale_file).with('es') {
-        file_contents
-      }
+    let(:locale) do
+      I18n::Migrations::Locale.new 'es',
+                                   locales_dir: locales_dir,
+                                   main_locale_name: 'en',
+                                   migrations: simple_migrations,
+                                   dictionary: FakeDictionary.new
+    end
 
-      locale = I18n::Migrations::Locale.new 'es',
-                                            locales_dir: locales_dir,
-                                            main_locale_name: 'en',
-                                            migrations: simple_migrations,
-                                            dictionary: FakeDictionary.new
+    describe '#pull_from_crowd_translate' do
+      it 'should pull file and save it, updating versions' do
+        allow(client).to receive(:get).with('locales/es.yml') { locale_file_contents }
 
-      backend.pull_from_crowd_translate(locale)
+        backend.pull_from_crowd_translate(locale)
 
-      expect(File.read(File.join(locales_dir, 'es.yml'))).to eq(file_contents)
-      expect(YAML::load(File.read(File.join(locales_dir, '../es_remote_version.yml'))))
-        .to eq({ 'es' => { 'VERSION' => ['version1', 'version2'] } })
+        expect(File.read(File.join(locales_dir, 'es.yml'))).to eq(locale_file_contents)
+        expect(YAML::load(File.read(File.join(locales_dir, '../es_remote_version.yml'))))
+          .to eq({ 'es' => { 'VERSION' => ['version1', 'version2'] } })
+      end
+    end
+
+    describe '#force_push' do
+      it 'should force push a locale' do
+        locale_notes_file_contents = <<~YAML
+          ---
+          es:
+            actions:
+              new: [autotranslated]
+        YAML
+
+        File.write(File.join(locales_dir, 'es.yml'), locale_file_contents)
+        File.write(File.join(locales_dir, '../es_notes.yml'), locale_notes_file_contents)
+
+        expect(client).to receive(:put)
+                            .with('locales/es',
+                                  locale: { name: 'es',
+                                            yaml_file: locale_file_contents,
+                                            yaml_notes_file: locale_notes_file_contents })
+
+        backend.force_push(locale)
+      end
     end
   end
 
-  describe '#push' do
-    it 'should ' do
-
-    end
-  end
 end

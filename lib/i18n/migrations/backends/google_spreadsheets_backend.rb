@@ -16,7 +16,7 @@ module I18n
           locale.migrate!
         end
 
-        def push(locale, force = false)
+        def push(locale, force: false)
           return if locale.main_locale?
 
           sheet = get_google_spreadsheet(locale.name)

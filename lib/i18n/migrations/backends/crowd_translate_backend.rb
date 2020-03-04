@@ -15,8 +15,10 @@ module I18n
           locale.migrate!
         end
 
-        def push(locale, force = false)
-          raise "CrowdTranslate does not support -f flag yet" if force
+        def push(locale, force: false)
+          if force
+            force_push(locale)
+          end
 
           # do this just once
           unless @migrations_synced
@@ -24,6 +26,16 @@ module I18n
             @migrations_synced = true
           end
           pull(locale)
+        end
+
+        # this will replace everything about a locale, it will create a locale that does not yet exist
+        def force_push(locale)
+          data, notes = locale.read_data_and_notes(parse: false)
+          client.put_locale(locale.name,
+                            name: locale.name,
+                            yaml_file: data,
+                            yaml_notes_file: notes)
+
         end
 
         def pull_from_crowd_translate(locale)

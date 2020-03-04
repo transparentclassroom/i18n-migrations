@@ -79,7 +79,7 @@ end
 
       def push(locale_or_all, force = false)
         each_locale(locale_or_all, concurrency: config.push_concurrency) do |locale|
-          backend.push(locale, force)
+          backend.push(locale, force: force)
           wait
         end
       end

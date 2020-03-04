@@ -106,13 +106,13 @@ module I18n
         read_versions(read_data).last
       end
 
-      def read_data
-        read_from_file("#{@name}.yml")
+      def read_data(parse: true)
+        read_from_file("#{@name}.yml", parse: parse)
       end
 
-      def read_data_and_notes
-        data = read_data
-        notes = main_locale? ? {} : read_from_file("../#{@name}_notes.yml")
+      def read_data_and_notes(parse: true)
+        data = read_data(parse: parse)
+        notes = main_locale? ? (parse ? {} : '--- {}') : read_from_file("../#{@name}_notes.yml", parse: parse)
         [data, notes]
       end
 
@@ -185,11 +185,14 @@ module I18n
         (data['VERSION'] && data['VERSION'].split("\n")) || []
       end
 
-      def read_from_file(filename)
+      def read_from_file(filename, parse: true)
         filename = File.join(@locales_dir, filename)
         begin
+          contents = File.read(filename)
+          return contents unless parse
+
           hash = {}
-          add_to_hash(hash, YAML.load(File.read(filename))[@name.to_s])
+          add_to_hash(hash, YAML.load(contents)[@name.to_s])
           hash
         rescue
           puts "Error loading #{filename}"
