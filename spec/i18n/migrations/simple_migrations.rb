@@ -13,7 +13,7 @@ class SimpleMigrations
       add 'two', 'TWO'
     end
   end
-  {}
+
   def initialize
     @migrations = {}
   end

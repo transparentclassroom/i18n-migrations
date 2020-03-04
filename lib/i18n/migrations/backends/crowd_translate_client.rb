@@ -16,31 +16,16 @@ module I18n
           )
         end
 
-        def sync_migrations(migrations)
-          local_versions = migrations.all_versions
-          remote_versions = JSON.parse(get('migrations.json'))
-
-          if (extra_versions = remote_versions - local_versions).present?
-            raise("You may not upload migrations to the server because it has migrations not found locally: " +
-                    "#{extra_versions.join(', ')}")
-          end
-
-          if (versions_to_add = local_versions - remote_versions).present?
-            versions_to_add.each do |version|
-              begin
-                put("migrations/#{version}.json",
-                    migration: { ruby_file: migrations.get_migration(version: version) })
-              rescue
-                puts "There was an error updating migration:".red
-                puts "  #{migrations.migration_file(version: version)}".bold
-                raise
-              end
-            end
-          end
-        end
-
         def get_locale_file(locale_code)
           get("locales/#{locale_code}.yml")
+        end
+
+        def get_migration_versions
+          JSON.parse(get('migrations.json'))
+        end
+
+        def put_migration(version:, ruby_file:)
+          put("migrations/#{version}.json", migration: { ruby_file: ruby_file })
         end
 
         private
