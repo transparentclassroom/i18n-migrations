@@ -59,7 +59,7 @@ module I18n
       end
 
       def google_translate_api_key
-        get_value(:google_translate_api_key)
+        get_value(:google_translate_api_key, ENV['GOOGLE_TRANSLATE_API_KEY'])
       end
 
       def concurrency
