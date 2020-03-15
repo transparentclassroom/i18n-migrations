@@ -109,19 +109,12 @@ module I18n
       end
 
       def read_data(parse: true)
-        contents = read_from_file("#{@name}.yml", parse: parse)
+        contents = data_file.read
         return contents unless parse
 
         hash = {}
-        add_to_hash(hash, contents[@name.to_s])
+        add_to_hash(hash, parse_yaml(contents)[@name.to_s])
         hash
-      end
-
-      def read_metadata(parse: true)
-        return parse ? {} : '--- {}' if main_locale?
-
-        content = read_from_file("../#{@name}_metadata.yml", parse: parse)
-        parse ? Metadata.new(content) : content
       end
 
       def read_data_and_metadata(parse: true)
@@ -132,18 +125,11 @@ module I18n
 
       def write_data_and_metadata(data, metadata)
         write_data(data)
-        write_to_file("../#{@name}_metadata.yml", metadata.to_yaml) unless main_locale?
-      end
-
-      def write_to_file(filename, data)
-        File.open(File.join(@locales_dir, filename), 'w') do |file|
-          file << data
-        end
+        write_metadata(metadata)
       end
 
       def write_remote_version(data)
-        write_to_file("../#{@name}_remote_version.yml",
-                      { 'VERSION' => read_versions(data) }.to_yaml)
+        remote_version_file.write({ 'VERSION' => read_versions(data) }.to_yaml)
       end
 
       def main_locale
@@ -165,6 +151,18 @@ module I18n
         end
       end
 
+      def data_file
+        file("#{name}.yml")
+      end
+
+      def metadata_file
+        file("../#{name}_metadata.yml")
+      end
+
+      def remote_version_file
+        file("../#{@name}_remote_version.yml")
+      end
+
       private
 
       def write_data(data)
@@ -174,7 +172,20 @@ module I18n
           value = data[key]
           assign_complex_key(complex_hash, key.split('.'), value.present? ? value : '')
         end
-        write_to_file("#{@name}.yml", { @name => complex_hash }.to_yaml)
+        data_file.write({ @name => complex_hash }.to_yaml)
+      end
+
+      def read_metadata(parse: true)
+        contents = if metadata_file.exist?
+                     metadata_file.read
+                   else
+                     {}.to_yaml
+                   end
+        parse ? Metadata.new(parse_yaml(contents)) : contents
+      end
+
+      def write_metadata(metadata)
+        metadata_file.write(metadata.to_yaml)
       end
 
       def migrate_to_version(data, metadata, version, direction)
@@ -196,17 +207,12 @@ module I18n
         (data['VERSION'] && data['VERSION'].split("\n")) || []
       end
 
-      def read_from_file(filename, parse: true)
-        filename = File.join(@locales_dir, filename)
-        begin
-          contents = File.read(filename)
-          return contents unless parse
+      def file(filename)
+        Pathname.new(File.join(@locales_dir, filename))
+      end
 
-          YAML.load(contents)
-        rescue
-          puts "Error loading #{filename}"
-          raise
-        end
+      def parse_yaml(string)
+        YAML.load(string)
       end
 
       # flattens new_hash and adds it to hash

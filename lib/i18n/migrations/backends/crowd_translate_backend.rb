@@ -40,7 +40,7 @@ module I18n
 
         def pull_from_crowd_translate(locale)
           data = client.get_locale_file(locale.name)
-          locale.write_to_file("#{locale.name}.yml", data)
+          locale.data_file.write(data)
           locale.write_remote_version(YAML::load(data)[locale.name])
         end
 
