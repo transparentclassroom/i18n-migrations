@@ -4,7 +4,6 @@ require 'i18n/migrations/migration_factory'
 require 'i18n/migrations/locale'
 require_relative '../simple_migrations'
 
-
 describe I18n::Migrations::Backends::CrowdTranslateBackend do
   let(:locales_dir) { '/tmp/crowd_translate_backend_spec/locales' }
   let(:migration_dir) { '/tmp/crowd_translate_backend_spec/migration' }
@@ -110,14 +109,14 @@ end
         backend.pull_from_crowd_translate(locale)
 
         expect(File.read(File.join(locales_dir, 'es.yml'))).to eq(locale_file_contents)
-        expect(YAML::load(File.read(File.join(locales_dir, '../es_remote_version.yml'))))
-          .to eq({ 'es' => { 'VERSION' => ['version1', 'version2'] } })
+        expect(File.read_yaml(File.join(locales_dir, '../es_remote_version.yml')))
+          .to eq('VERSION' => ['version1', 'version2'])
       end
     end
 
     describe '#force_push' do
       it 'should force push a locale' do
-        locale_notes_file_contents = <<~YAML
+        locale_metadata_file_contents = <<~YAML
           ---
           es:
             actions:
@@ -125,13 +124,13 @@ end
         YAML
 
         File.write(File.join(locales_dir, 'es.yml'), locale_file_contents)
-        File.write(File.join(locales_dir, '../es_notes.yml'), locale_notes_file_contents)
+        File.write(File.join(locales_dir, '../es_metadata.yml'), locale_metadata_file_contents)
 
         expect(client).to receive(:put)
                             .with('locales/es',
                                   locale: { name: 'es',
                                             yaml_file: locale_file_contents,
-                                            yaml_notes_file: locale_notes_file_contents })
+                                            yaml_metadata_file: locale_metadata_file_contents })
 
         backend.force_push(locale)
       end

@@ -35,18 +35,18 @@ describe I18n::Migrations::Locale do
   end
 
   describe '#update_info' do
-    it 'should read date & notes and write them back' do
+    it 'should read date & metadata and write them back' do
       File.write_yaml '/tmp/locale_spec/locales/es.yml', es: { something: 'this is data' }
-      File.write_yaml '/tmp/locale_spec/es_notes.yml', es: { something_else: 'this is notes' }
+      File.write_yaml '/tmp/locale_spec/es_metadata.yml', something_else: { notes: 'this is metadata' }
 
-      locale.update_info do |data, notes|
+      locale.update_info do |data, metadata|
         expect(data).to eq({ 'something' => 'this is data' })
-        expect(notes).to eq({ 'something_else' => 'this is notes' })
+        expect(metadata.to_h).to eq({ 'something_else' => { 'notes' => 'this is metadata' } })
 
         data['foo'] = 'blue'
         data['bar.baz.boo'] = 'cow'
-        notes['foo'] = 'red'
-        notes['bar.baz.boo'] = 'bull'
+        metadata['foo'].notes = 'red'
+        metadata['bar.baz.boo'].notes = 'bull'
       end
 
       expect(File.read('/tmp/locale_spec/locales/es.yml')).to eq <<-YML
@@ -58,14 +58,14 @@ es:
   foo: blue
   something: this is data
       YML
-      expect(File.read('/tmp/locale_spec/es_notes.yml')).to eq <<-YML
+      expect(File.read('/tmp/locale_spec/es_metadata.yml')).to eq <<-YML
 ---
-es:
-  bar:
-    baz:
-      boo: bull
-  foo: red
-  something_else: this is notes
+bar.baz.boo:
+  notes: bull
+foo:
+  notes: red
+something_else:
+  notes: this is metadata
       YML
     end
   end
@@ -73,28 +73,28 @@ es:
   describe '#migrate & #rollback' do
     it 'should play migrations not yet played' do
       data = {}
-      notes = {}
-      locale.migrate(data, notes)
+      metadata = Metadata.new
+      locale.migrate(data, metadata)
       expect(data).to eq('VERSION' => "one\ntwo",
                          'one' => 'translated ONE',
                          'two' => 'translated TWO')
-      expect(notes).to eq('one' => '[autotranslated]',
-                          'two' => '[autotranslated]')
+      expect(metadata.to_h).to eq('one' => { 'autotranslated' => true },
+                                  'two' => { 'autotranslated' => true })
 
       # rollback one migration
-      locale.rollback(data, notes)
+      locale.rollback(data, metadata)
       expect(data).to eq('VERSION' => 'one',
                          'one' => 'translated ONE')
 
       # play just the one migration
-      locale.migrate(data, notes)
+      locale.migrate(data, metadata)
       expect(data).to eq('VERSION' => "one\ntwo",
                          'one' => 'translated ONE',
                          'two' => 'translated TWO')
 
       # rollback both migrations
-      locale.rollback(data, notes)
-      locale.rollback(data, notes)
+      locale.rollback(data, metadata)
+      locale.rollback(data, metadata)
       expect(data).to eq('VERSION' => '')
     end
   end

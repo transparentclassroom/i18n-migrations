@@ -101,10 +101,10 @@ module I18n
 
       def assign_translation(key, term, overrides)
         if overrides[@locale_code.to_sym]
-          @translations.set_term(key, value: overrides[@locale_code.to_sym])
+          @translations.set_term(key, value: overrides[@locale_code.to_sym], errors: [], autotranslated: false)
         else
-          value, notes = @dictionary.lookup(term, key: key)
-          @translations.set_term(key, value: value, notes: notes)
+          value, errors = @dictionary.lookup(term, key: key)
+          @translations.set_term(key, value: value, errors: errors, autotranslated: true)
         end
       end
     end

@@ -64,8 +64,8 @@ end
 
       def rollback(locale_or_all)
         each_locale(locale_or_all) do |locale|
-          locale.update_info do |data, notes|
-            locale.rollback(data, notes)
+          locale.update_info do |data, metadata|
+            locale.rollback(data, metadata)
           end
         end
       end
@@ -97,8 +97,8 @@ end
       def validate(locale_or_all)
         each_locale(locale_or_all, async: false) do |locale|
           next if locale.main_locale?
-          locale.update_info do |data, notes|
-            locale.validate(data, notes)
+          locale.update_info do |data, metadata|
+            locale.validate(data, metadata)
           end
         end
       end

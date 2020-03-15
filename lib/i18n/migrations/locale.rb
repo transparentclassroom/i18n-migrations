@@ -3,6 +3,7 @@ require 'yaml'
 require 'active_support'
 require 'colorize'
 require 'active_support/core_ext/object'
+require_relative './metadata'
 
 # this class does all the work, but doesn't hold config or do more than one locale
 module I18n
@@ -16,7 +17,7 @@ module I18n
           name, locales_dir, main_locale_name, migrations, dictionary
       end
 
-      def validate(data, notes)
+      def validate(data, metadata)
         fix_count, error_count = 0, 0
         main_data = main_locale.read_data
         main_data.each do |key, main_term|
@@ -31,7 +32,7 @@ module I18n
             puts
             fix_count += 1
           end
-          replace_errors_in_notes(notes, key, errors)
+          metadata[key].errors = errors
           if errors.length > 0
             puts "Error #{errors.join(', ').red} #{key.yellow}"
             puts "#{@main_locale_name.bold}: #{main_term}"
@@ -46,18 +47,18 @@ module I18n
       end
 
       def update_info
-        data, notes = read_data_and_notes
-        yield data, notes
-        write_data_and_notes(data, notes)
+        data, metadata = read_data_and_metadata
+        yield data, metadata
+        write_data_and_metadata(data, metadata)
       end
 
       def migrate!
-        update_info do |data, notes|
-          migrate(data, notes)
+        update_info do |data, metadata|
+          migrate(data, metadata)
         end
       end
 
-      def migrate(data, notes)
+      def migrate(data, metadata)
         missing_versions = (@migrations.all_versions - read_versions(data)).sort
         if missing_versions.empty?
           puts "#{@name}: up-to-date"
@@ -65,11 +66,11 @@ module I18n
         end
         puts "#{@name}: Migrating #{missing_versions.join(', ')}"
         missing_versions.each do |version|
-          migrate_to_version(data, notes, version, :up)
+          migrate_to_version(data, metadata, version, :up)
         end
       end
 
-      def rollback(data, notes)
+      def rollback(data, metadata)
         last_version = read_versions(data).last
         if last_version == nil
           puts "#{@name}: no more migrations to roll back"
@@ -78,24 +79,25 @@ module I18n
         puts "#{@name}: Rolling back #{last_version}"
         raise "Can't find #{last_version}.rb to rollback" unless @migrations.all_versions.include?(last_version)
 
-        migrate_to_version(data, notes, last_version, :down)
+        migrate_to_version(data, metadata, last_version, :down)
       end
 
       def create(limit = nil)
-        new_data, new_notes = {}, {}
+        new_data, new_metadata = {}, Metadata.new
         count = 0
         main_data = main_locale.read_data
         main_data.each do |key, term|
           if key == 'VERSION'
             new_data['VERSION'] = main_data['VERSION']
           else
-            new_data[key], new_notes[key] = @dictionary.lookup(term, key: key)
+            new_data[key], errors = @dictionary.lookup(term, key: key)
+            new_metadata[key].errors = errors
           end
           print '.'.green
           break if limit && limit < (count += 1)
         end
         puts
-        write_data_and_notes(new_data, new_notes)
+        write_data_and_metadata(new_data, new_metadata)
       end
 
       def main_locale?
@@ -107,21 +109,33 @@ module I18n
       end
 
       def read_data(parse: true)
-        read_from_file("#{@name}.yml", parse: parse)
+        contents = read_from_file("#{@name}.yml", parse: parse)
+        return contents unless parse
+
+        hash = {}
+        add_to_hash(hash, contents[@name.to_s])
+        hash
       end
 
-      def read_data_and_notes(parse: true)
+      def read_metadata(parse: true)
+        return parse ? {} : '--- {}' if main_locale?
+
+        content = read_from_file("../#{@name}_metadata.yml", parse: parse)
+        parse ? Metadata.new(content) : content
+      end
+
+      def read_data_and_metadata(parse: true)
         data = read_data(parse: parse)
-        notes = main_locale? ? (parse ? {} : '--- {}') : read_from_file("../#{@name}_notes.yml", parse: parse)
-        [data, notes]
+        metadata = read_metadata(parse: parse)
+        [data, metadata]
       end
 
-      def write_data_and_notes(data, notes)
+      def write_data_and_metadata(data, metadata)
         write_data(data)
-        write_to_file("../#{@name}_notes.yml", notes) unless main_locale?
+        write_to_file("../#{@name}_metadata.yml", metadata.to_yaml) unless main_locale?
       end
 
-      def write_raw_data(filename, data)
+      def write_to_file(filename, data)
         File.open(File.join(@locales_dir, filename), 'w') do |file|
           file << data
         end
@@ -129,7 +143,7 @@ module I18n
 
       def write_remote_version(data)
         write_to_file("../#{@name}_remote_version.yml",
-                      { 'VERSION' => read_versions(data) })
+                      { 'VERSION' => read_versions(data) }.to_yaml)
       end
 
       def main_locale
@@ -153,24 +167,21 @@ module I18n
 
       private
 
-      def replace_errors_in_notes(all_notes, key, errors)
-        return if all_notes[key].blank? && errors.empty?
-
-        notes = all_notes[key]
-        notes = notes.present? ? notes.split("\n") : []
-        notes = notes.reject { |n| n.start_with?("[error:") }
-        all_notes[key] = (errors.map { |e| "[error: #{e}]" } + notes).join("\n")
-      end
-
       def write_data(data)
-        write_to_file("#{@name}.yml", data)
+        # we have to go from flat keys -> values to a hash that contains other hashes
+        complex_hash = {}
+        data.keys.sort.each do |key|
+          value = data[key]
+          assign_complex_key(complex_hash, key.split('.'), value.present? ? value : '')
+        end
+        write_to_file("#{@name}.yml", { @name => complex_hash }.to_yaml)
       end
 
-      def migrate_to_version(data, notes, version, direction)
+      def migrate_to_version(data, metadata, version, direction)
         migrations.play_migration(version: version,
                                   locale: @name,
                                   data: data,
-                                  notes: notes,
+                                  metadata: metadata,
                                   dictionary: @dictionary,
                                   direction: direction)
 
@@ -191,23 +202,11 @@ module I18n
           contents = File.read(filename)
           return contents unless parse
 
-          hash = {}
-          add_to_hash(hash, YAML.load(contents)[@name.to_s])
-          hash
+          YAML.load(contents)
         rescue
           puts "Error loading #{filename}"
           raise
         end
-      end
-
-      def write_to_file(filename, hash)
-        # we have to go from flat keys -> values to a hash that contains other hashes
-        complex_hash = {}
-        hash.keys.sort.each do |key|
-          value = hash[key]
-          assign_complex_key(complex_hash, key.split('.'), value.present? ? value : '')
-        end
-        write_raw_data(filename, { @name => complex_hash }.to_yaml)
       end
 
       # flattens new_hash and adds it to hash

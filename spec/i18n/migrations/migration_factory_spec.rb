@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'i18n/migrations/migration_factory'
+require 'i18n/migrations/metadata'
 
 describe I18n::Migrations::MigrationFactory do
   let(:migration_dir) { '/tmp/migration_factory_spec/migration' }
@@ -25,7 +26,7 @@ describe I18n::Migrations::MigrationFactory do
 
   describe '#play_migration' do
     let(:data) { {} }
-    let(:notes) { {} }
+    let(:metadata) { Metadata.new }
     before do
       File.write File.join(migration_dir, '201712061057_payments_page.rb'), <<-RUBY
 require 'i18n-migrations'
@@ -43,7 +44,7 @@ end
       migrations.play_migration(version: '201712061057_payments_page',
                                 locale: 'es',
                                 data: data,
-                                notes: notes,
+                                metadata: metadata,
                                 dictionary: FakeDictionary.new,
                                 direction: direction)
     end
@@ -52,14 +53,14 @@ end
       play_migration(:up)
 
       expect(data)
-          .to eq({
-                     'payments.show.hint.credit' => 'translated This is a credit',
-                     'payments.show.title' => 'Recibo para Transparent Classroom',
-                 })
-      expect(notes)
-          .to eq({
-                     'payments.show.hint.credit' => '[autotranslated]',
-                 })
+        .to eq({
+                 'payments.show.hint.credit' => 'translated This is a credit',
+                 'payments.show.title' => 'Recibo para Transparent Classroom',
+               })
+      expect(metadata.to_h)
+        .to eq({
+                 'payments.show.hint.credit' => { 'autotranslated' => true },
+               })
     end
 
     it 'should create migration and roll it back' do
@@ -67,7 +68,7 @@ end
       play_migration(:down)
 
       expect(data).to eq({})
-      expect(notes).to eq({})
+      expect(metadata.to_h).to eq({})
     end
   end
 end

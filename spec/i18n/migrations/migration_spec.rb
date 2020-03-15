@@ -1,12 +1,13 @@
 require 'spec_helper'
 require 'i18n/migrations/migration'
 require 'i18n/migrations/migration_factory'
+require 'i18n/migrations/metadata'
 
 describe I18n::Migrations::Migration do
-  let(:translations) { I18n::Migrations::MigrationFactory::Translations.new(data: @data, notes: @notes) }
+  let(:translations) { I18n::Migrations::MigrationFactory::Translations.new(data: @data, metadata: @metadata) }
 
   before do
-    @data, @notes = {}, {}
+    @data, @metadata = {}, Metadata.new
   end
 
   def play_migration(type, direction)
@@ -30,13 +31,13 @@ describe I18n::Migrations::Migration do
 
       expect(@data).to eq('actions.new' => 'translated New',
                           'names.bob' => 'translated Bob')
-      expect(@notes).to eq('actions.new' => '[autotranslated]',
-                           'names.bob' => '[autotranslated]')
+      expect(@metadata.to_h).to eq('actions.new' => { 'autotranslated' => true },
+                                   'names.bob' => { 'autotranslated' => true })
 
       play_migration TestMigrationAdd, :down
 
       expect(@data).to eq({})
-      expect(@notes).to eq({})
+      expect(@metadata.to_h).to eq({})
     end
   end
 
@@ -49,17 +50,17 @@ describe I18n::Migrations::Migration do
 
     it 'should work' do
       @data = { 'actions.new' => 'New' }
-      @notes = { 'actions.new' => 'something' }
+      @metadata['actions.new'].notes = 'something'
 
       play_migration TestMigrationMv, :up
 
       expect(@data).to eq('actions.start' => 'New')
-      expect(@notes).to eq('actions.start' => 'something')
+      expect(@metadata.to_h).to eq('actions.start' => { 'notes' => 'something' })
 
       play_migration TestMigrationMv, :down
 
       expect(@data).to eq('actions.new' => 'New')
-      expect(@notes).to eq('actions.new' => 'something')
+      expect(@metadata.to_h).to eq('actions.new' => { 'notes' => 'something' })
     end
   end
 
@@ -72,17 +73,17 @@ describe I18n::Migrations::Migration do
 
     it 'should work' do
       @data = { 'names.bob' => 'Bob' }
-      @notes = { 'names.bob' => 'something' }
+      @metadata['names.bob'].notes = 'something'
 
       play_migration TestMigrationUpdate, :up
 
       expect(@data).to eq('names.bob' => 'translated Robert')
-      expect(@notes).to eq('names.bob' => '[autotranslated]')
+      expect(@metadata.to_h).to eq('names.bob' => { 'autotranslated' => true })
 
       play_migration TestMigrationUpdate, :down
 
       expect(@data).to eq('names.bob' => 'translated Bob')
-      expect(@notes).to eq('names.bob' => '[autotranslated]')
+      expect(@metadata.to_h).to eq('names.bob' => { 'autotranslated' => true })
     end
   end
 
@@ -95,17 +96,17 @@ describe I18n::Migrations::Migration do
 
     it 'should work' do
       @data = { 'actions.new' => 'New' }
-      @notes = { 'actions.new' => 'something' }
+      @metadata['actions.new'].notes = 'something'
 
       play_migration TestMigrationRm, :up
 
       expect(@data).to eq({})
-      expect(@notes).to eq({})
+      expect(@metadata.to_h).to eq({})
 
       play_migration TestMigrationRm, :down
 
       expect(@data).to eq('actions.new' => 'translated New')
-      expect(@notes).to eq('actions.new' => '[autotranslated]')
+      expect(@metadata.to_h).to eq('actions.new' => { 'autotranslated' => true })
     end
   end
 end

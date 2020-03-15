@@ -17,11 +17,15 @@ class File
       f << stringify(yaml).to_yaml
     end
   end
+
+  def self.read_yaml(name)
+    YAML.load(File.read(name))
+  end
 end
 
 class FakeDictionary
   def lookup(term, key: nil)
-    ["translated #{term}", '[autotranslated]']
+    ["translated #{term}", []]
   end
 end
 

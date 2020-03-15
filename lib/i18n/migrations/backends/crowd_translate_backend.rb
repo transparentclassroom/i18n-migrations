@@ -30,17 +30,17 @@ module I18n
 
         # this will replace everything about a locale, it will create a locale that does not yet exist
         def force_push(locale)
-          data, notes = locale.read_data_and_notes(parse: false)
+          data, metadata = locale.read_data_and_metadata(parse: false)
           client.put_locale(locale.name,
                             name: locale.name,
                             yaml_file: data,
-                            yaml_notes_file: notes)
+                            yaml_metadata_file: metadata)
 
         end
 
         def pull_from_crowd_translate(locale)
           data = client.get_locale_file(locale.name)
-          locale.write_raw_data("#{locale.name}.yml", data)
+          locale.write_to_file("#{locale.name}.yml", data)
           locale.write_remote_version(YAML::load(data)[locale.name])
         end
 

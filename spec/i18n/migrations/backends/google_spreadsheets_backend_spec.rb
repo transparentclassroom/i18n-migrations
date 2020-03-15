@@ -35,8 +35,10 @@ describe I18n::Migrations::Backends::GoogleSpreadsheetsBackend do
     let(:data) {
       [
         ['key', 'en', 'es', 'notes'],
+        ['VERSION', "version1\nversion2", "version1\nversion2", ''],
         ['one', 'ONE', 'UNO', 'notes about one'],
-        ['two', 'TWO', 'DOS', nil],
+        ['two', 'TWO', 'DOS', ''],
+        ['more.complex.key', 'more stuff', 'mas stuff', "[autotranslated]\n[error: foo]"],
       ]
     }
 
@@ -44,19 +46,74 @@ describe I18n::Migrations::Backends::GoogleSpreadsheetsBackend do
       sheet = FakeSheet.new(data)
       backend.pull_from_sheet(sheet, locale)
 
-      expect(YAML.load_file('/tmp/locale_spec/locales/es.yml')).to eq(stringify(es: { one: 'UNO', two: 'DOS' }))
-      expect(YAML.load_file('/tmp/locale_spec/es_notes.yml')).to eq(stringify(es: { one: 'notes about one' }))
+      data, metadata = locale.read_data_and_metadata
+
+      expect(data).to eq('VERSION' => "version1\nversion2",
+                         'one' => 'UNO',
+                         'two' => 'DOS',
+                         'more.complex.key' => 'mas stuff')
+      expect(metadata.to_h).to eq('one' => { 'notes' => 'notes about one' },
+                                  'more.complex.key' => { 'autotranslated' => true,
+                                                          'errors' => ['foo'] })
+
+      expect(File.read_yaml(File.join(locales_dir, '../es_remote_version.yml')))
+        .to eq('VERSION' => ['version1', 'version2'])
     end
 
     it 'should push data to sheet' do
-      File.write_yaml('/tmp/locale_spec/locales/en.yml', en: { one: 'ONE', two: 'TWO' })
-      File.write_yaml('/tmp/locale_spec/locales/es.yml', es: { one: 'UNO', two: 'DOS' })
-      File.write_yaml('/tmp/locale_spec/es_notes.yml', es: { one: 'notes about one' })
+      File.write_yaml('/tmp/locale_spec/locales/en.yml',
+                      en: { VERSION: "version1\nversion2",
+                            one: 'ONE',
+                            two: 'TWO',
+                            'more.complex.key': 'more stuff' })
+      File.write_yaml('/tmp/locale_spec/locales/es.yml',
+                      es: { VERSION: "version1\nversion2",
+                            one: 'UNO',
+                            two: 'DOS',
+                            'more.complex.key': 'mas stuff' })
+      File.write_yaml('/tmp/locale_spec/es_metadata.yml',
+                      one: { notes: 'notes about one' },
+                      'more.complex.key': { autotranslated: true, errors: ['foo'] })
 
       sheet = FakeSheet.new
       backend.push_to_sheet(sheet, locale)
 
       expect(sheet.data).to eq(data)
+
+      expect(File.read_yaml(File.join(locales_dir, '../es_remote_version.yml')))
+        .to eq('VERSION' => ['version1', 'version2'])
+    end
+  end
+
+  describe 'parsing metadatum' do
+    def parse(string)
+      backend.parse_metadatum(string).to_h
+    end
+
+    def unparse(hash)
+      backend.unparse_metadatum(Metadata::Metadatum.new(hash))
+    end
+
+    it "should parse" do
+      expect(parse("")).to eq({})
+      expect(parse("foo")).to eq('notes' => 'foo')
+      expect(parse("[autotranslated] foo")).to eq('autotranslated' => true, 'notes' => 'foo')
+      expect(parse("[error: bob]")).to eq('errors' => ['bob'])
+      expect(parse("[autotranslated][error: something] like cheese [error: bob] [and crackers]"))
+        .to eq('autotranslated' => true,
+               'notes' => 'like cheese  [and crackers]',
+               'errors' => ['something', 'bob'])
+    end
+
+    it "should unparse" do
+      expect(unparse({})).to eq('')
+      expect(unparse('notes' => 'foo')).to eq("foo")
+      expect(unparse('autotranslated' => true, 'notes' => 'foo')).to eq("[autotranslated]\nfoo")
+      expect(unparse('errors' => ['bob'])).to eq("[error: bob]")
+      expect(unparse('autotranslated' => true,
+                     'notes' => 'like cheese  [and crackers]',
+                     'errors' => ['something', 'bob']))
+        .to eq("[autotranslated]\n[error: something]\n[error: bob]\nlike cheese  [and crackers]")
     end
   end
 end

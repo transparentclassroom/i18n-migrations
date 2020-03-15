@@ -9,7 +9,7 @@ module I18n
       end
 
       # key is provided so we can figure out if this is text or html
-      # returns [translated term, notes]
+      # returns [translated term, errors || []]
       def lookup(term, key: nil)
         return [term, ''] if @from_locale == @to_locale
 
@@ -19,11 +19,7 @@ module I18n
                                     format: format(key),
                                     q: term)
         translated_term = JSON.parse(response.body)['data']['translations'].first['translatedText']
-        translated_term, errors = fix(term, translated_term, key: key)
-        unless errors.empty?
-          STDERR.puts "'#{term}' => '#{translated_term}'\n#{errors.join(', ').red}"
-        end
-        [translated_term, (errors.map { |e| "[error: #{e}]" } + ['[autotranslated]']).join("\n")]
+        fix(term, translated_term, key: key)
       end
 
       VARIABLE_STRING_REGEX = /%\{[^\}]+\}/

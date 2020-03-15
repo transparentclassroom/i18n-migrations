@@ -1,4 +1,5 @@
 require_relative './google_spreadsheet'
+require_relative '../metadata'
 
 module I18n
   module Migrations
@@ -36,7 +37,7 @@ module I18n
         def pull_from_sheet(sheet, locale)
           puts "Pulling #{locale.name}"
           data = {}
-          notes = {}
+          metadata = Metadata.new
           count = 0
 
           (2..sheet.num_rows).each do |row|
@@ -44,14 +45,14 @@ module I18n
             if key.present?
               locale.assign_complex_key(data, key.split('.'), value.present? ? value : '')
               if note.present?
-                locale.assign_complex_key(notes, key.split('.'), note)
+                metadata[key] = parse_metadatum(note)
               end
               count += 1
               print '.'
             end
           end
 
-          locale.write_data_and_notes(data, notes)
+          locale.write_data_and_metadata(data, metadata)
           locale.write_remote_version(data)
 
           puts "\n#{count} keys"
@@ -59,7 +60,7 @@ module I18n
 
         def push_to_sheet(sheet, locale)
           main_data = locale.main_locale.read_data
-          data, notes = locale.read_data_and_notes
+          data, metadata = locale.read_data_and_metadata
           row = 2
 
           puts "Pushing #{locale.name}"
@@ -68,7 +69,7 @@ module I18n
             sheet[row, 1] = key
             sheet[row, 2] = value
             sheet[row, 3] = data[key]
-            sheet[row, 4] = notes[key]
+            sheet[row, 4] = unparse_metadatum(metadata[key])
             row += 1
             print '.'
           end
@@ -77,6 +78,28 @@ module I18n
           locale.write_remote_version(data)
 
           puts "\n#{main_data.keys.length} keys"
+        end
+
+        def parse_metadatum(text)
+          m = Metadata::Metadatum.new({})
+          m.notes = text.gsub("[autotranslated]") do
+            m.autotranslated = true
+            ''
+          end.gsub(/\[error: ([^\]]+)\]/) do
+            m.errors << $1
+            ''
+          end.strip
+          m
+        end
+
+        def unparse_metadatum(metadatum)
+          string = []
+          string << '[autotranslated]' if metadatum.autotranslated
+          metadatum.errors.each do |error|
+            string << "[error: #{error}]"
+          end
+          string << metadatum.notes unless metadatum.notes.blank?
+          string.join("\n")
         end
       end
     end
