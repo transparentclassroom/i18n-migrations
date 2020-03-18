@@ -40,7 +40,7 @@ describe I18n::Migrations::GoogleTranslateDictionary do
 
     it 'should raise errors around mismatched %{}s' do
       expect(dict.fix('hello, %{mom} and %{dad}!', '¡hola, mom!', key: 'key'))
-          .to eq(['¡hola, mom!', ['es: key', 'missing %{mom}, %{dad}']])
+          .to eq(['¡hola, mom!', ['missing %{mom}, %{dad}']])
     end
 
     it 'should fix DO_NOT_TRANSLATE strings if possible' do
@@ -52,7 +52,7 @@ describe I18n::Migrations::GoogleTranslateDictionary do
 
     it 'should raise errors around mistranslating DO_NOT_TRANSLATE strings' do
       expect(dict.fix('Welcome to Transparent Classroom', 'Bienvenidos al Transparente', key: 'key'))
-          .to eq(['Bienvenidos al Transparente', ['es: key', 'missing Transparent Classroom']])
+          .to eq(['Bienvenidos al Transparente', ['missing Transparent Classroom']])
     end
 
     describe 'escaped html' do
@@ -78,7 +78,7 @@ describe I18n::Migrations::GoogleTranslateDictionary do
 
       it 'should have error if it does not know an escape' do
         expect(dict.fix('foo', 'foo &what;', key: 'foo'))
-            .to eq(['foo &what;', ['es: foo', "Don't know how to clean up &what;"]])
+            .to eq(['foo &what;', ["Don't know how to clean up &what;"]])
       end
     end
   end
