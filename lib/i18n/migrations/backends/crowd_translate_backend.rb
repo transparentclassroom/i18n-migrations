@@ -20,11 +20,6 @@ module I18n
             force_push(locale)
           end
 
-          # do this just once
-          unless @migrations_synced
-            sync_migrations(locale.migrations)
-            @migrations_synced = true
-          end
           pull(locale)
         end
 

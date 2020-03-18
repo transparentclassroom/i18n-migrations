@@ -78,6 +78,7 @@ end
       end
 
       def push(locale_or_all, force = false)
+        backend.sync_migrations(new_migrations)
         each_locale(locale_or_all, concurrency: config.push_concurrency) do |locale|
           backend.push(locale, force: force)
           wait
@@ -104,7 +105,7 @@ end
       end
 
       private def each_locale(name = 'all',
-                              async: config.google_spreadsheet?,
+                              async: true,
                               concurrency: config.concurrency)
         locale_names = name == 'all' ? all_locale_names : [name]
 

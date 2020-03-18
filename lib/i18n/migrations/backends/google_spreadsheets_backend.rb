@@ -34,6 +34,10 @@ module I18n
                                 @config.google_service_account_key_path).sheet
         end
 
+        def sync_migrations(migrations)
+          # nothing to do here in this backend
+        end
+
         def pull_from_sheet(sheet, locale)
           puts "Pulling #{locale.name}"
           data = {}
