@@ -48,7 +48,7 @@ module I18n
                 metadata[key] = parse_metadatum(note)
               end
               count += 1
-              print '.'
+              #print '.'
             end
           end
 
@@ -71,7 +71,7 @@ module I18n
             sheet[row, 3] = data[key]
             sheet[row, 4] = unparse_metadatum(metadata[key])
             row += 1
-            print '.'
+            #print '.'
           end
 
           sheet.synchronize
