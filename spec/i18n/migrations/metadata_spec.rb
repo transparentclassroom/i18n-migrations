@@ -78,4 +78,14 @@ describe Metadata do
     expect(metadata.to_h).to eq({ 'foo.bar' => { 'notes' => 'something' },
                                   'bar' => { 'autotranslated' => true } })
   end
+
+  it 'should be possible to move data in one step' do
+    hash = { 'foo.bar' => { 'notes' => 'something' },
+             'foo' => { 'autotranslated' => true } }
+    metadata = Metadata.new(hash)
+    metadata['bar'] = metadata.delete('foo')
+
+    expect(metadata.to_h).to eq({ 'foo.bar' => { 'notes' => 'something' },
+                                  'bar' => { 'autotranslated' => true } })
+  end
 end

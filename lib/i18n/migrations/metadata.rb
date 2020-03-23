@@ -20,7 +20,9 @@ class Metadata
   end
 
   def delete(key)
+    metadatum = self[key]
     @hash.delete(key)
+    metadatum
   end
 
   def to_h
