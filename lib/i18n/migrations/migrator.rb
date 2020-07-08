@@ -104,9 +104,19 @@ end
         end
       end
 
+      private def report_locale_on_error(locale, &block)
+        begin
+          block.call locale
+        rescue
+          puts "Error w/ '#{locale.name}': #{$!.message}"
+          raise
+        end
+      end
+
       private def each_locale(name = 'all',
                               async: true,
-                              concurrency: config.concurrency)
+                              concurrency: config.concurrency,
+                              &block)
         locale_names = name == 'all' ? all_locale_names : [name]
 
         if async
@@ -114,13 +124,13 @@ end
           locale_names.each_slice(concurrency) do |some_locale_names|
             threads = some_locale_names.map do |l|
               locale = locale_for(l)
-              Thread.new { yield locale }
+              Thread.new { report_locale_on_error(locale, &block) }
             end
             threads.each(&:join)
           end
         else
           locale_names.each do |l|
-            yield locale_for(l)
+            report_locale_on_error(locale_for(l), &block)
           end
         end
       end
