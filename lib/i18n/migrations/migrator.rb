@@ -72,7 +72,7 @@ end
 
       def pull(locale_or_all)
         each_locale(locale_or_all) do |locale|
-          next if locale.main_locale?
+          # next if locale.main_locale?
           backend.pull(locale)
         end
       end
@@ -107,8 +107,12 @@ end
       private def report_locale_on_error(locale, &block)
         begin
           block.call locale
+        rescue Backends::CrowdTranslateError
+          puts "Error\n... while working with #{locale.name}\n#{$!.message}".red
+          # we want a readable error for our users, and the error happened in an external system,
+          # so don't give them a stack trace
         rescue
-          puts "Error w/ '#{locale.name}': #{$!.message}"
+          puts "Error\n... while working with #{locale.name}\n#{$!.message}".red
           raise
         end
       end

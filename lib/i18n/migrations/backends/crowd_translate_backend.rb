@@ -53,9 +53,7 @@ module I18n
               begin
                 client.put_migration(version: version, ruby_file: migrations.get_migration(version: version))
               rescue
-                puts "There was an error updating migration:".red
-                puts "  #{migrations.migration_file(version: version)}".bold
-                raise
+                raise CrowdTranslateError, "... while updating migration: #{migrations.migration_file(version: version)}\n#{$!.message}"
               end
             end
           end
