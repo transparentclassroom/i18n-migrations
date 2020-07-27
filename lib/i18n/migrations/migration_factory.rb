@@ -27,15 +27,15 @@ module I18n
         raise("Can't parse version: #{version}") unless version =~ /^(\d{12})_(.*)/
         migration_class_name = "#{$2.camelcase}#{$1}"
 
-        translations = Translations.new(data: data, metadata: metadata)
+        translations = Translations.new(locale_code: locale, data: data, metadata: metadata)
         migration = begin
-          migration_class_name.constantize.new(locale_code: locale,
-                                               translations: translations,
-                                               dictionary: dictionary,
-                                               direction: direction)
-        rescue
-          raise "Couldn't load migration #{migration_class_name} in #{filename}"
-        end
+                      migration_class_name.constantize.new(locale_code: locale,
+                                                           translations: translations,
+                                                           dictionary: dictionary,
+                                                           direction: direction)
+                    rescue
+                      raise "Couldn't load migration #{migration_class_name} in #{filename}"
+                    end
 
         migration.change
       end
@@ -44,8 +44,8 @@ module I18n
       # data = all keys -> all translations in this locale
       # metadata = some keys -> metadata about the translation in this locale
       class Translations
-        def initialize(data:, metadata:)
-          @data, @metadata = data, metadata
+        def initialize(locale_code:, data:, metadata:)
+          @locale_code, @data, @metadata = locale_code, data, metadata
         end
 
         def get_term(key)
@@ -63,6 +63,17 @@ module I18n
           @metadata[key].errors = errors
           @metadata[key].notes = nil
           @metadata[key].autotranslated = autotranslated
+          if errors.present?
+            puts [
+                   "=" * 100,
+                   "#{@locale_code}: #{key}",
+                   value,
+                   errors.map { |e| "Error: #{e}".red }.join("\n"),
+                   "=" * 100,
+                 ].compact.join("\n")
+            # puts ["Error with #{@locale_code}: #{key}: \n  #{errors.join("\n  ")}".red,
+            #       value].compact.join("\n")
+          end
         end
 
         def delete_term(key)

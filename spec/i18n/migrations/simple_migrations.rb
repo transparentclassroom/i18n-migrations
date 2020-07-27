@@ -23,7 +23,9 @@ class SimpleMigrations
   end
 
   def play_migration(version:, locale:, data:, metadata:, dictionary:, direction:)
-    translations = I18n::Migrations::MigrationFactory::Translations.new(data: data, metadata: metadata)
+    translations = I18n::Migrations::MigrationFactory::Translations.new(locale_code: locale,
+                                                                        data: data,
+                                                                        metadata: metadata)
     migration = @migrations[version].new(locale_code: locale,
                                          translations: translations,
                                          dictionary: dictionary,
