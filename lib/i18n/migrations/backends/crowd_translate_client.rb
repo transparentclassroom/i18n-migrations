@@ -49,10 +49,14 @@ module I18n
           if response.success?
             response.body
           else
-            error = begin
-                      JSON.parse(response.body)['error']
-                    rescue
-                      response.body
+            error = if response.status == 503
+                      'Server timed out - your request may have succeed, check the server for more details'
+                    else
+                      begin
+                        JSON.parse(response.body)['error']
+                      rescue
+                        response.body
+                      end
                     end
             raise CrowdTranslateError, "... while calling #{method} #{File.join(base_url, path)}\n#{error}"
           end
