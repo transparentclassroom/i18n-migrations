@@ -49,9 +49,8 @@ In your project file, you should then have all your english terms in ```config/l
 
 You can:
 
-* [Add a migration](https://github.com/transparentclassroom/i18n-migrations/wiki/Add-a-migration)
 * [Create a new locale](https://github.com/transparentclassroom/i18n-migrations/wiki/Create-a-new-locale-(language))
-
+* [Add a migration](https://github.com/transparentclassroom/i18n-migrations/wiki/Add-a-migration)
 
 ## Development
 
