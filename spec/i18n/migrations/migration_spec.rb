@@ -4,7 +4,9 @@ require 'i18n/migrations/migration_factory'
 require 'i18n/migrations/metadata'
 
 describe I18n::Migrations::Migration do
-  let(:translations) { I18n::Migrations::MigrationFactory::Translations.new(data: @data, metadata: @metadata) }
+  let(:translations) { I18n::Migrations::MigrationFactory::Translations.new(locale_code: 'es',
+                                                                            data: @data,
+                                                                            metadata: @metadata) }
 
   before do
     @data, @metadata = {}, Metadata.new
