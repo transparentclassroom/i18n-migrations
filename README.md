@@ -47,19 +47,9 @@ Let's imagine that your config file look like this:
 
 In your project file, you should then have all your english terms in ```config/locales/en.yml```
 
-To create a new locale (like es.yml):
+You can:
 
-1. Translate all the terms w/ google translate
-
-    > i18n-migrate new_locale es
-    
-2. Create a spreadsheet that is world editable (for now). You'll want to add the link to it to your config file. It should look like:
-
-    | key | en | es | notes | 
-
-2. Push this to your google spreadsheet (the -f means it won't try to pull first)
-
-    > i18n-migrate push -f es
+* [Create a new locale](https://github.com/transparentclassroom/i18n-migrations/wiki/Create-a-new-locale-(language))
 
 
 ## Development
@@ -71,8 +61,9 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 ## Contributing
 
 1. Fork it ( https://github.com/[my-github-username]/i18n-migrations/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+1. Create your feature branch (`git checkout -b my-new-feature`)
+1. Make sure tests are passing (`rake`)
+1. Commit your changes (`git commit -am 'Add some feature'`)
+1. Push to the branch (`git push origin my-new-feature`)
+1. Create a new Pull Request
 
