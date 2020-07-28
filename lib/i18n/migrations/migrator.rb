@@ -123,6 +123,13 @@ end
                               &block)
         locale_names = name == 'all' ? all_locale_names : [name]
 
+        # do the main locale first, so we aren't updating it and reading it for other locales at the same time
+        if locale_names.include?(config.main_locale)
+          locale_names -= [config.main_locale]
+
+          report_locale_on_error(locale_for(config.main_locale), &block)
+        end
+
         if async
           puts "Using #{concurrency} concurrency"
           locale_names.each_slice(concurrency) do |some_locale_names|
