@@ -212,7 +212,7 @@ module I18n
       end
 
       def parse_yaml(string)
-        YAML.load(string)
+        YAML.load(string) || {}
       end
 
       # flattens new_hash and adds it to hash
