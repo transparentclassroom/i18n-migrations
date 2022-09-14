@@ -1,0 +1,17 @@
+version: 2.1
+orbs:
+  ruby: circleci/ruby@1.8
+jobs:
+  rspec:
+    docker:
+      - image: cimg/ruby:3.1.2
+    steps:
+      - checkout
+      - ruby/install-deps
+      - ruby/rspec-test
+      - store_test_results:
+          path: spec/reports
+workflows:
+  test_suite:
+    jobs:
+      - rspec
