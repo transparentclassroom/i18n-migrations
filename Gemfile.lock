@@ -1,0 +1,161 @@
+PATH
+  remote: .
+  specs:
+    i18n-migrations (2.0.7)
+      activesupport
+      colorize
+      faraday
+      google_drive
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    activesupport (6.1.7)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 1.6, < 2)
+      minitest (>= 5.1)
+      tzinfo (~> 2.0)
+      zeitwerk (~> 2.3)
+    addressable (2.8.1)
+      public_suffix (>= 2.0.2, < 6.0)
+    autoparse (0.3.3)
+      addressable (>= 2.3.1)
+      extlib (>= 0.9.15)
+      multi_json (>= 1.0.0)
+    colorize (0.8.1)
+    concurrent-ruby (1.1.10)
+    connection_pool (2.2.5)
+    diff-lcs (1.5.0)
+    domain_name (0.5.20190701)
+      unf (>= 0.0.5, < 1.0.0)
+    extlib (0.9.16)
+    faraday (2.5.2)
+      faraday-net_http (>= 2.0, < 3.1)
+      ruby2_keywords (>= 0.0.4)
+    faraday-net_http (3.0.0)
+    google-api-client (0.7.1)
+      addressable (>= 2.3.2)
+      autoparse (>= 0.3.3)
+      extlib (>= 0.9.15)
+      faraday (>= 0.9.0)
+      jwt (>= 0.1.5)
+      launchy (>= 2.1.1)
+      multi_json (>= 1.0.0)
+      retriable (>= 1.4)
+      signet (>= 0.5.0)
+      uuidtools (>= 2.1.0)
+    google_drive (1.0.6)
+      google-api-client (>= 0.7.0, < 0.9)
+      nokogiri (>= 1.4.4, != 1.5.2, != 1.5.1)
+      oauth (>= 0.3.6)
+      oauth2 (>= 0.5.0)
+    hashie (5.0.0)
+    http-cookie (1.0.5)
+      domain_name (~> 0.5)
+    i18n (1.12.0)
+      concurrent-ruby (~> 1.0)
+    jwt (2.5.0)
+    launchy (2.5.0)
+      addressable (~> 2.7)
+    mail (2.7.1)
+      mini_mime (>= 0.1.1)
+    mechanize (2.8.5)
+      addressable (~> 2.8)
+      domain_name (~> 0.5, >= 0.5.20190701)
+      http-cookie (~> 1.0, >= 1.0.3)
+      mime-types (~> 3.0)
+      net-http-digest_auth (~> 1.4, >= 1.4.1)
+      net-http-persistent (>= 2.5.2, < 5.0.dev)
+      nokogiri (~> 1.11, >= 1.11.2)
+      rubyntlm (~> 0.6, >= 0.6.3)
+      webrick (~> 1.7)
+      webrobots (~> 0.1.2)
+    mime (0.4.4)
+    mime-types (3.4.1)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2022.0105)
+    mini_mime (1.1.2)
+    mini_portile2 (2.8.0)
+    minitest (5.16.3)
+    multi_json (1.15.0)
+    multi_xml (0.6.0)
+    net-http-digest_auth (1.4.1)
+    net-http-persistent (4.0.1)
+      connection_pool (~> 2.2)
+    nokogiri (1.13.8)
+      mini_portile2 (~> 2.8.0)
+      racc (~> 1.4)
+    nokogiri (1.13.8-x86_64-linux)
+      racc (~> 1.4)
+    oauth (0.6.2)
+      snaky_hash (~> 2.0)
+      version_gem (~> 1.1)
+    oauth2 (2.0.8)
+      faraday (>= 0.17.3, < 3.0)
+      jwt (>= 1.0, < 3.0)
+      multi_xml (~> 0.5)
+      rack (>= 1.2, < 3)
+      snaky_hash (~> 2.0)
+      version_gem (~> 1.1)
+    public_suffix (5.0.0)
+    racc (1.6.0)
+    rack (2.2.4)
+    rake (10.5.0)
+    retriable (3.1.2)
+    rspec (3.11.0)
+      rspec-core (~> 3.11.0)
+      rspec-expectations (~> 3.11.0)
+      rspec-mocks (~> 3.11.0)
+    rspec-core (3.11.0)
+      rspec-support (~> 3.11.0)
+    rspec-expectations (3.11.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.11.0)
+    rspec-mocks (3.11.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.11.0)
+    rspec-support (3.11.1)
+    ruby-gmail (0.3.1)
+      mail (>= 2.2.1)
+      mime (>= 0.1)
+      shared-mime-info
+    ruby2_keywords (0.0.5)
+    rubyntlm (0.6.3)
+    shared-mime-info (0.2.5)
+    signet (0.17.0)
+      addressable (~> 2.8)
+      faraday (>= 0.17.5, < 3.a)
+      jwt (>= 1.5, < 3.0)
+      multi_json (~> 1.10)
+    snaky_hash (2.0.0)
+      hashie
+      version_gem (~> 1.1)
+    tzinfo (2.0.5)
+      concurrent-ruby (~> 1.0)
+    unf (0.1.4)
+      unf_ext
+    unf_ext (0.0.8.2)
+    uuidtools (2.2.0)
+    version_gem (1.1.0)
+    webrick (1.7.0)
+    webrobots (0.1.2)
+    zeitwerk (2.6.0)
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  activesupport
+  bundler (~> 2.3)
+  colorize
+  faraday
+  google_drive
+  i18n-migrations!
+  mechanize
+  rake (~> 10.0)
+  rspec
+  ruby-gmail
+
+BUNDLED WITH
+   2.3.22

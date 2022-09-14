@@ -7,11 +7,10 @@ jobs:
       - image: cimg/ruby:3.1.2
     steps:
       - checkout
-      - ruby/install-deps:
-          bundler-version: 2.3.22
+      - ruby/install-deps
       - ruby/rspec-test
       - store_test_results:
-          path: ~/rspec
+          path: spec/reports
 workflows:
   test_suite:
     jobs:
