@@ -20,9 +20,9 @@ Gem::Specification.new do |spec|
   spec.executables   = ["i18n-migrate"]
   spec.require_paths = ["lib"]
 
-  spec.required_ruby_version = '~> 2.4'
+  spec.required_ruby_version = ['>= 2.4', '< 3.2']
 
-  spec.add_development_dependency "bundler", "~> 1.9"
+  spec.add_development_dependency "bundler", "~> 2.3"
   spec.add_development_dependency "rake", "~> 10.0"
 
   spec.add_dependency 'google_drive'

@@ -27,11 +27,11 @@ And then execute:
 Or install it yourself as:
 
     $ gem install i18n-migrations
-    
+
 From your project file, you'll want to run 
 
     $ i18n-migrate setup
-    
+
 This will create a config file you can edit.
 
 ## Usage
@@ -45,7 +45,7 @@ Let's imagine that your config file look like this:
     - es
     ..
 
-In your project file, you should then have all your english terms in ```config/locales/en.yml```
+In your project file, you should then have all your English terms in ```config/locales/en.yml```
 
 You can:
 
