@@ -1,4 +1,3 @@
-require_relative './google_spreadsheet'
 require_relative '../metadata'
 
 module I18n
