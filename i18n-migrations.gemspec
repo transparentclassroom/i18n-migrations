@@ -24,6 +24,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 2.3"
   spec.add_development_dependency "rake", "~> 10.0"
+  spec.add_development_dependency "rspec_junit_formatter"
 
   spec.add_dependency 'google_drive'
   spec.add_dependency 'activesupport'
