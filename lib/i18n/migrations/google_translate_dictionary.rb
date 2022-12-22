@@ -4,6 +4,17 @@ require 'active_support/core_ext/object'
 module I18n
   module Migrations
     class GoogleTranslateDictionary
+
+      def self.logger
+        @logger ||= Logger.new(STDOUT).tap do |logger|
+          logger.level = ENV.fetch('LOG_LEVEL', Logger::WARN)
+        end
+      end
+
+      def logger
+        self.class.logger
+      end
+
       def initialize(from_locale:, to_locale:, key:, do_not_translate:)
         @from_locale, @to_locale, @key, @do_not_translate = from_locale, to_locale, key, do_not_translate
       end
@@ -131,6 +142,7 @@ module I18n
       end
 
       def google_translate(key:, source:, target:, format:, q:)
+        logger.info({ message: "Translating via Google", key: key, source: source, target: target, format: format, q: q })
         params = { key: key,
                    source: source,
                    target: target,
