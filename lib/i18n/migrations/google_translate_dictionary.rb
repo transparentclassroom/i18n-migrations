@@ -22,7 +22,7 @@ module I18n
       # key is provided so we can figure out if this is text or html
       # returns [translated term, errors || []]
       def lookup(term, key: nil)
-        logger.info(message: "Looking up Term", term: term, key: key, from_locale: @from_locale, to_locale: @to_locale)
+        logger.debug(message: "Looking up Term", term: term, key: key, from_locale: @from_locale, to_locale: @to_locale)
         return [term, ''] if @from_locale == @to_locale
 
         response = google_translate(key: @key,
@@ -143,7 +143,7 @@ module I18n
       end
 
       def google_translate(key:, source:, target:, format:, q:)
-        logger.info({ message: "Translating via Google Translate", key: key, source: source, target: target, format: format, q: q })
+        logger.debug({ message: "Translating via Google Translate", key: key, source: source, target: target, format: format, q: q })
         params = { key: key,
                    source: source,
                    target: target,
