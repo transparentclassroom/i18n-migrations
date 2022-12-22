@@ -11,6 +11,10 @@ module I18n
         end
       end
 
+      def self.logger=(logger)
+        @logger = logger
+      end
+
       def logger
         self.class.logger
       end
