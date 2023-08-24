@@ -5,7 +5,7 @@ migration_dir: i18n/migrate
 locales_dir: config/locales
 
 # choose either google_spreadsheets or crowd_translate as a backend
-backend: google_spreadsheets
+backend: crowd_translate
 
 # number of threads to concurrently perform migration operations for locales (optional)
 # concurrency: 4
@@ -31,7 +31,7 @@ google_spreadsheets:
   es: https://docs.google.com/spreadsheets/d/YOUR_SPREADSHEET_ID/edit
 
 # this is your api key to use google translate
-google_translate_api_key: [INSERT_GOOGLE_TRANSLATE_API_KEY]
+google_translate_api_key: AIzaSyBhndWTcsLe8CfQC3yWhNgiSkEEV16lziE
 
 # put things like your product name here along with any possible mistranslations
 do_not_translate:
