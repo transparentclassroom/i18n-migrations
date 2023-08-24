@@ -20,6 +20,14 @@ module I18n
                                     q: term)
         translated_term = JSON.parse(response.body)['data']['translations'].first['translatedText']
         fix(term, translated_term, key: key)
+      rescue
+        error_message = JSON.parse(response.body).dig('error', 'message')
+
+        if error_message 
+          raise error_message
+        else 
+          raise $1
+        end
       end
 
       VARIABLE_STRING_REGEX = /%\{[^\}]+\}/
