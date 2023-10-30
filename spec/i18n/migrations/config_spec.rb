@@ -15,7 +15,7 @@ describe I18n::Migrations::Config do
   end
 
   after do
-    FileUtils.rm(FILE_NAME) if File.exists?(FILE_NAME)
+    FileUtils.rm(FILE_NAME) if File.exist?(FILE_NAME)
   end
 
   def load_config
