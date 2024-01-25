@@ -1,5 +1,5 @@
 $LOAD_PATH.unshift File.expand_path('../lib', __FILE__)
-require 'active_support/json'
+require 'active_support'
 
 def stringify(hash)
   JSON.parse(hash.to_json)
