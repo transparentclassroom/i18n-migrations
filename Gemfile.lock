@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    i18n-migrations (2.0.10)
+    i18n-migrations (2.1)
       activesupport
       colorize
       faraday
