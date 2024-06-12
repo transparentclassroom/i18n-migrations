@@ -1,5 +1,7 @@
 require 'fileutils'
 require 'yaml'
+require 'active_support/deprecation'
+require 'active_support/deprecator'
 require 'active_support/inflector'
 require 'active_support/core_ext/object'
 require 'colorize'
