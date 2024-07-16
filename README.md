@@ -58,6 +58,29 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release` to create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
+## Updating the gem version
+1. Create a commit with the new version number and push it up to Github
+    ```
+        git commit -m "vx.x.x"
+        git push
+    ```
+1. Create a tag in Github for the new release
+    ```
+        git tag -a vx.x.x -m "[INSERT CHANGE DESCRIPTION]"
+        git push origin v.x.x
+    ```
+1. Push up and merge the branch into the repo
+1. Build the new `.gem` file. This will create a new file labeled `i18n-migrations-x.x.gem`
+    ```
+        gem build i18n-migrations
+    ```
+1. Push the newly built gem to RubyGems
+    ```
+        gem push i18n-migrations-x.x.x.gem
+    ```
+1. Verify on the [i18n-migrations RubyGems directory page](https://rubygems.org/gems/i18n-migrations) that the new version has been published
+1. Delete the gem build file (`i18n-migrations-x.x.x.gem`)
+
 ## Contributing
 
 1. Fork it ( https://github.com/[my-github-username]/i18n-migrations/fork )
