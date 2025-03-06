@@ -21,7 +21,8 @@ main_locale: en
 
 # put all other locales you want to use here, if they don't already exist, add them with i18n-migrations new-locale es
 other_locales:
-  - es
+  es:
+    name: Spanish
 
 # you need a service account key in order to access google spreadsheets. This is the path to it, relative to your config file
 google_service_account_key_path: i18n/google_drive_key.json

@@ -6,18 +6,24 @@ require 'active_support/inflector'
 require 'active_support/core_ext/object'
 require 'colorize'
 
-require 'i18n/migrations/backends/crowd_translate_backend'
-require 'i18n/migrations/backends/google_spreadsheets_backend'
-require 'i18n/migrations/config'
-require 'i18n/migrations/google_translate_dictionary'
-require 'i18n/migrations/locale'
-require 'i18n/migrations/migration_factory'
+require_relative 'backends/crowd_translate_backend'
+require_relative 'backends/google_spreadsheets_backend'
+require_relative 'config'
+require_relative 'google_translate_dictionary'
+require_relative 'locale'
+require_relative 'migration_factory'
 
 # this class knows how to do all the things the cli needs done.
 # it mostly delegates to locale to do it, often asking multiple locales to do the same thing
 module I18n
   module Migrations
     class Migrator
+      attr_accessor :allow_translations
+
+      def initialize(allow_translations: true)
+        self.allow_translations = allow_translations
+      end
+
       def locale_for(name)
         Locale.new(name,
                    locales_dir: config.locales_dir,
@@ -153,6 +159,8 @@ end
       end
 
       private def new_dictionary(locale)
+        return nil if !allow_translations
+
         GoogleTranslateDictionary.new(from_locale: config.main_locale,
                                       to_locale: locale,
                                       key: config.google_translate_api_key,
