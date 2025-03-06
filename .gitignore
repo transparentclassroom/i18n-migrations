@@ -8,3 +8,6 @@
 /tmp/
 /.ruby-gemset
 /.idea
+.env
+.i18n-migrations.yml
+/config/

@@ -4,66 +4,72 @@ require_relative '../lib/i18n/migrations/migrator'
 require_relative '../lib/i18n/migrations/config'
 require_relative '../lib/i18n/migrations/version'
 
-migrator = I18n::Migrations::Migrator.new
+def translating_migrator
+  @translating_migrator ||= I18n::Migrations::Migrator.new
+end
+
+def nontranslating_migrator
+  @nontranslating_migrator ||= I18n::Migrations::Migrator.new(allow_translations: false)
+end
 
 def extract_option(name)
   !!ARGV.delete(name)
 end
 
-begin
-  case ARGV.shift
-  when 'setup'
-    puts 'Where should we create a default config file? [.]'
-    dir = gets.chomp
-    dir = dir == '' ? '.' : dir
-    file = I18n::Migrations::Config.copy_default_config_file(dir)
 
-    puts 'You will need to configure this file before you can get going.'
-    puts File.expand_path(file)
+case ARGV.shift
+when 'setup'
+  puts 'Where should we create a default config file? [.]'
+  dir = gets.chomp
+  dir = dir == '' ? '.' : dir
+  file = I18n::Migrations::Config.copy_default_config_file(dir)
 
-  when 'new'
-    name = ARGV.shift
-    if name
-      migrator.new_migration name
-    else
-      STDERR.puts 'Usage: im new [name]'
-      exit 1
-    end
+  puts 'You will need to configure this file before you can get going.'
+  puts File.expand_path(file)
 
-  when 'migrate'
-    migrator.migrate(ARGV[0] || 'all')
-
-  when 'rollback'
-    migrator.rollback(ARGV[0] || 'all')
-
-  when 'redo'
-    migrator.rollback(ARGV[0] || 'all')
-    migrator.migrate(ARGV[0] || 'all')
-
-  when 'pull'
-    migrator.pull(ARGV[0] || 'all')
-
-  when 'push'
-    force = extract_option('-f')
-    migrator.push(ARGV[0] || 'all', force)
-
-  when 'validate'
-    migrator.validate(ARGV[0] || 'all')
-
-  when 'new_locale'
-    locale = ARGV.shift
-    if locale
-      migrator.new_locale(locale)
-    else
-      STDERR.puts 'Usage: im new_locale [name]'
-      exit 1
-    end
-
-  when 'version'
-    migrator.version
-
+when 'new'
+  name = ARGV.shift
+  if name
+    nontranslating_migrator.new_migration name
   else
-    puts <<-USAGE
+    STDERR.puts 'Usage: im new [name]'
+    exit 1
+  end
+
+when 'migrate'
+  translating_migrator.migrate(ARGV[0] || 'all')
+
+when 'rollback'
+  translating_migrator.rollback(ARGV[0] || 'all')
+
+when 'redo'
+  translating_migrator.rollback(ARGV[0] || 'all')
+  translating_migrator.migrate(ARGV[0] || 'all')
+
+when 'pull'
+  nontranslating_migrator.pull(ARGV[0] || 'all')
+
+when 'push'
+  force = extract_option('-f')
+  nontranslating_migrator.push(ARGV[0] || 'all', force)
+
+when 'validate'
+  nontranslating_migrator.validate(ARGV[0] || 'all')
+
+when 'new_locale'
+  locale = ARGV.shift
+  if locale
+    translating_migrator.new_locale(locale)
+  else
+    STDERR.puts 'Usage: im new_locale [name]'
+    exit 1
+  end
+
+when 'version'
+  nontranslating_migrator.version
+
+else
+  puts <<-USAGE
 Usage: i18n-migrate [command]
 
 Commands:
@@ -72,16 +78,12 @@ Commands:
   migrate - Migrate to current version.
   rollback - Rollback to previous version.
   redo - Rollback and then migrate again.
-  pull - Pull latest translation spreadsheet. 
+  pull - Pull latest translation spreadsheet.
   push - Push to translation spreadsheet. (-f to force, without doing a pull first)
   validate - check all translations according to our rules and fix what we can
   new_locale - Copy your current main locale file to a new language, translating all keys.
   version - Print version of locales.
 
 i18n-migrations version #{I18n::Migrations::VERSION}
-    USAGE
-  end
-rescue Exception
-  puts "Error\n#{$!.message}".red
-  exit 1
+  USAGE
 end
