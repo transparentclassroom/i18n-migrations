@@ -12,7 +12,6 @@ module I18n
 
         def pull(locale)
           pull_from_crowd_translate(locale)
-          locale.migrate!
         end
 
         def push(locale, force: false)
