@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    i18n-migrations (2.2)
+    i18n-migrations (2.2.1)
       activesupport
       colorize
       faraday
@@ -94,8 +94,6 @@ GEM
       connection_pool (~> 2.2)
     nokogiri (1.16.5)
       mini_portile2 (~> 2.8.2)
-      racc (~> 1.4)
-    nokogiri (1.16.5-x86_64-linux)
       racc (~> 1.4)
     os (1.1.4)
     public_suffix (5.0.1)
