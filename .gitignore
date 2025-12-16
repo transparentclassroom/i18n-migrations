@@ -11,3 +11,4 @@
 .env
 .i18n-migrations.yml
 /config/
+*.gem
