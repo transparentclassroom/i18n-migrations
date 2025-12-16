@@ -54,7 +54,7 @@ when 'push'
   nontranslating_migrator.push(ARGV[0] || 'all', force)
 
 when 'validate'
-  nontranslating_migrator.validate(ARGV[0] || 'all')
+  translating_migrator.validate(ARGV[0] || 'all')
 
 when 'new_locale'
   locale = ARGV.shift
